@@ -196,6 +196,16 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
   if (data === null) return <main className={styles.loading}>Production not found.</main>;
 
   const currentCopy = pendingApproval ? approvalCopy[pendingApproval.kind] : null;
+  const activeTaskIndex = data.tasks.findIndex((task) => task.key === activeTask?.key);
+  const completedTaskCount = data.tasks.filter((task) => task.status === "completed").length;
+  const activeMessages = data.messages.filter((message) => message.taskKey === activeTask?.key).slice(-3);
+  const activeTranscriptPreview = data.transcriptChunks
+    .filter((chunk) => chunk.taskKey === activeTask?.key && chunk.kind === "output")
+    .slice(-3)
+    .map((chunk) => chunk.text)
+    .join("")
+    .trim();
+  const selectedTreatment = approvedDecisions.find((decision) => decision.kind === "treatment")?.option?.label;
 
   return (
     <main className={styles.page}>
@@ -313,10 +323,48 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
                 </div>
               </div>
             ) : (
-              <div>
-                <p>{data.production.status === "completed" ? "The agency has finished" : "Hermes is working as"}</p>
-                <h1>{activeTask?.role ?? "AfterImage Producer"}</h1>
-                <span>{activeTask?.title ?? "Production complete"}</span>
+              <div className={styles.liveMonitor}>
+                <div className={styles.monitorGlow} aria-hidden="true" />
+                <header>
+                  <div>
+                    <small>Stage {String(Math.max(1, activeTaskIndex + 1)).padStart(2, "0")} / {String(data.tasks.length).padStart(2, "0")}</small>
+                    <b>{activeTask?.skill ?? "production"}</b>
+                  </div>
+                  <div className={styles.renderTelemetry}>
+                    <span><i /> Agent online</span>
+                    <span>{data.production.videoDurationSeconds ?? 5}s · 480p</span>
+                  </div>
+                </header>
+
+                <div className={styles.monitorBody}>
+                  <section className={styles.roleLockup}>
+                    <p>{data.production.status === "completed" ? "The agency has finished" : "Hermes is working as"}</p>
+                    <h1>{activeTask?.role ?? "AfterImage Producer"}</h1>
+                    <strong>{activeTask?.title ?? "Production complete"}</strong>
+                    <div className={styles.stageMeter}>
+                      <i style={{ width: `${Math.max(8, (completedTaskCount / data.tasks.length) * 100)}%` }} />
+                    </div>
+                    <small>{completedTaskCount} stages locked · {data.tasks.length - completedTaskCount} remaining</small>
+                  </section>
+
+                  <aside className={styles.monitorFeed}>
+                    <header><span>Now on the desk</span><b>LIVE</b></header>
+                    {selectedTreatment && <div className={styles.feedDecision}><small>Approved world</small><strong>{selectedTreatment}</strong></div>}
+                    {activeTranscriptPreview ? (
+                      <blockquote>{activeTranscriptPreview.slice(-360)}<i /></blockquote>
+                    ) : activeMessages.length ? (
+                      activeMessages.map((message) => <p key={message._id}>{message.text}</p>)
+                    ) : (
+                      <p>Hermes has opened the skill and is preparing the first production checkpoint.</p>
+                    )}
+                  </aside>
+                </div>
+
+                <footer>
+                  {data.tasks.map((task, index) => (
+                    <span data-state={task.status} key={task.key}><b>{String(index + 1).padStart(2, "0")}</b>{task.role}</span>
+                  ))}
+                </footer>
               </div>
             )}
           </div>

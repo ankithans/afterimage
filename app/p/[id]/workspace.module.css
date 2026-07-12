@@ -41,6 +41,8 @@
 .layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(340px, .55fr); height: calc(100svh - 49px); min-height: 0; }
 .screeningRoom { min-height: 0; padding: 26px 30px 80px; overflow-y: auto; overscroll-behavior: contain; border-right: 1px solid var(--line); scrollbar-color: var(--signal) transparent; }
 .screen { position: relative; display: grid; min-height: 46svh; padding: 32px; place-items: center; overflow: hidden; color: var(--paper); background: radial-gradient(circle at 50% 30%, #42271f, #181714 54%, #0a0a09); text-align: center; }
+.screen[data-mode="live"] { min-height: clamp(520px, 62svh, 680px); }
+.screen[data-mode="live"] > .screenLabel, .screen[data-mode="live"] > .signal { display: none; }
 .screen[data-mode="decision"] { min-height: 560px; padding: 70px 32px 38px; }
 .screen[data-mode="master"] { padding: 0; background: #050505; }
 .screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px); background-size: 100% 4px; }
@@ -50,6 +52,48 @@
 .screen span { color: var(--paper-muted); }
 .signal { position: absolute; top: 20px; right: 20px; width: 8px; height: 8px; border-radius: 50%; background: var(--acid); box-shadow: 0 0 18px var(--acid); animation: pulse 1.8s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .35; } }
+
+.liveMonitor { position: absolute; z-index: 1; inset: 0; display: grid; grid-template-rows: auto 1fr auto; padding: 28px 30px 24px; overflow: hidden; text-align: left; }
+.monitorGlow { position: absolute; inset: -30%; pointer-events: none; background: conic-gradient(from 220deg at 52% 48%, transparent 0 25%, rgba(255,82,48,.14) 34%, transparent 45% 72%, rgba(203,255,70,.045) 79%, transparent 88%); filter: blur(28px); animation: monitorDrift 12s ease-in-out infinite alternate; }
+@keyframes monitorDrift { to { transform: translate3d(5%, -4%, 0) rotate(7deg) scale(1.08); } }
+.liveMonitor::before { content: ""; position: absolute; inset: 0; opacity: .22; background-image: linear-gradient(90deg, transparent 49.8%, rgba(255,255,255,.12) 50%, transparent 50.2%), linear-gradient(transparent 49.8%, rgba(255,255,255,.08) 50%, transparent 50.2%); background-size: 190px 190px; mask-image: radial-gradient(circle at center, black, transparent 72%); animation: gridBreathe 7s ease-in-out infinite alternate; }
+@keyframes gridBreathe { to { opacity: .38; transform: scale(1.04); } }
+.liveMonitor > header, .liveMonitor > footer, .monitorBody { position: relative; z-index: 2; }
+.liveMonitor > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.liveMonitor > header > div:first-child small, .liveMonitor > header > div:first-child b { display: block; }
+.liveMonitor > header small { color: var(--paper-muted); font: 500 8px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+.liveMonitor > header > div:first-child b { margin-top: 6px; color: var(--blue); font: 500 10px var(--mono); text-transform: uppercase; }
+.renderTelemetry { display: flex; align-items: center; gap: 18px; }
+.renderTelemetry span { display: inline-flex; align-items: center; gap: 7px; color: var(--paper-muted); font: 500 8px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+.renderTelemetry i { width: 6px; height: 6px; border-radius: 50%; background: var(--acid); box-shadow: 0 0 11px var(--acid); animation: pulse 1.2s ease-in-out infinite; }
+.monitorBody { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(270px,.72fr); gap: clamp(30px,5vw,80px); align-items: center; }
+.roleLockup { padding-left: clamp(0px,3vw,45px); }
+.roleLockup p { margin-bottom: 14px; color: var(--signal); letter-spacing: .14em; }
+.roleLockup h1 { max-width: 740px; font-size: clamp(54px,7vw,112px); line-height: .78; text-wrap: balance; }
+.roleLockup > strong { display: block; max-width: 520px; margin-top: 25px; color: var(--paper); font-size: clamp(15px,1.45vw,22px); font-weight: 450; line-height: 1.25; }
+.stageMeter { width: min(420px,80%); height: 2px; margin-top: 34px; overflow: hidden; background: rgba(241,238,229,.14); }
+.stageMeter i { display: block; height: 100%; background: linear-gradient(90deg,var(--signal),var(--acid)); box-shadow: 0 0 12px var(--signal); animation: meterGlow 1.8s ease-in-out infinite alternate; }
+@keyframes meterGlow { to { filter: brightness(1.5); } }
+.roleLockup > small { display: block; margin-top: 10px; color: var(--paper-muted); font: 500 8px var(--mono); text-transform: uppercase; }
+.monitorFeed { min-height: 230px; padding: 18px; border: 1px solid rgba(241,238,229,.14); background: rgba(8,8,7,.62); box-shadow: 18px 18px 0 rgba(255,82,48,.035); backdrop-filter: blur(12px); }
+.monitorFeed > header { display: flex; padding-bottom: 12px; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.monitorFeed > header span, .monitorFeed > header b { font: 500 8px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.monitorFeed > header span { color: var(--paper-muted); }
+.monitorFeed > header b { color: var(--acid); }
+.feedDecision { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.feedDecision small, .feedDecision strong { display: block; }
+.feedDecision small { color: var(--signal); font: 500 8px var(--mono); text-transform: uppercase; }
+.feedDecision strong { margin-top: 5px; font-size: 14px; }
+.monitorFeed blockquote { margin: 16px 0 0; color: var(--paper); font-size: 13px; line-height: 1.55; }
+.monitorFeed blockquote i { display: inline-block; width: 6px; height: 13px; margin-left: 4px; vertical-align: -2px; background: var(--acid); animation: blink 800ms steps(1) infinite; }
+.monitorFeed > p { margin: 14px 0 0; padding-left: 12px; border-left: 1px solid var(--signal); color: var(--paper-muted); font: 400 10px/1.5 var(--mono); text-transform: none; }
+.liveMonitor > footer { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 1px; background: rgba(241,238,229,.12); }
+.liveMonitor > footer span { display: flex; min-width: 0; padding: 10px 9px; align-items: center; gap: 8px; overflow: hidden; color: var(--paper-muted); background: rgba(8,8,7,.86); font: 500 7px var(--mono); text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.liveMonitor > footer span b { color: #5e5d57; font-weight: 500; }
+.liveMonitor > footer span[data-state="completed"] { color: var(--paper); }
+.liveMonitor > footer span[data-state="completed"] b { color: var(--acid); }
+.liveMonitor > footer span[data-state="working"] { color: var(--paper); background: rgba(255,82,48,.14); box-shadow: inset 0 -2px var(--signal); }
+.liveMonitor > footer span[data-state="working"] b { color: var(--signal); }
 
 .audioWorkbench { position: sticky; z-index: 8; top: -1px; display: grid; grid-template-columns: 44px minmax(120px,.34fr) minmax(180px,1fr) auto; gap: 14px; min-height: 72px; margin-bottom: 14px; padding: 12px 15px; align-items: center; border: 1px solid var(--line); background: rgba(15,15,13,.94); box-shadow: 0 12px 32px rgba(0,0,0,.28); backdrop-filter: blur(18px); }
 .transportButton { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid var(--signal); border-radius: 50%; color: var(--paper); background: rgba(255,90,54,.12); font-size: 13px; cursor: pointer; transition: transform 150ms ease, background 150ms ease; }
@@ -174,6 +218,8 @@
   .layout { height: auto; }
   .screeningRoom { overflow: visible; border-right: 0; }
   .chat { min-height: 650px; border-top: 1px solid var(--line); }
+  .monitorBody { grid-template-columns: 1fr; gap: 20px; }
+  .monitorFeed { min-height: 150px; }
 }
 
 @media (max-width: 760px) {
@@ -188,12 +234,20 @@
   .revisionBox > small { grid-column: auto; }
   .masterDecision { grid-template-columns: 1fr 1fr; }
   .masterDecision > div { grid-column: 1 / -1; }
+  .liveMonitor { padding: 24px 18px 18px; }
+  .renderTelemetry span:first-child { display: none; }
+  .roleLockup { padding-left: 0; }
+  .roleLockup h1 { font-size: clamp(48px,14vw,72px); }
+  .monitorFeed { display: none; }
+  .liveMonitor > footer { grid-template-columns: repeat(5,1fr); }
+  .liveMonitor > footer span { justify-content: center; font-size: 0; }
+  .liveMonitor > footer span b { font-size: 8px; }
 }
 
 @media (max-width: 600px) {
   .topbar { grid-template-columns: 1fr auto; padding: 0 16px; }
   .productionName { display: none; }
   .screeningRoom { padding: 14px; }
-  .screen { min-height: 380px; }
+  .screen, .screen[data-mode="live"] { min-height: 440px; }
   .audioWorkbench { padding: 11px; }
 }
