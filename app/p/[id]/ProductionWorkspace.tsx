@@ -225,7 +225,7 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
             {data.production.title}<span>✎</span>
           </button>
         )}
-        <div className={styles.state}>{data.production.status.replaceAll("_", " ")}</div>
+        <div className={styles.state}>{data.production.status.replaceAll("_", " ")} · {data.production.videoDurationSeconds ?? 5}s</div>
       </header>
 
       <div className={styles.layout}>

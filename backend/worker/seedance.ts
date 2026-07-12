@@ -10,6 +10,7 @@ type SeedanceTask = {
 export async function generateStoryVideo(input: {
   apiKey: string;
   prompt: string;
+  durationSeconds: 5 | 10 | 15;
   imageUrls?: string[];
   onProgress?: (status: string) => Promise<void>;
 }) {
@@ -26,7 +27,7 @@ export async function generateStoryVideo(input: {
         prompt: `${input.prompt}\nCreate a coherent cinematic micro-story with a clear beginning, turn, and emotional final image. Use real subject and camera motion, not a slideshow. No captions, logos, or watermark.`,
         generation_type: imageUrls.length ? "reference-to-video" : "text-to-video",
         ...(imageUrls.length ? { image_urls: imageUrls } : {}),
-        duration: 10,
+        duration: input.durationSeconds,
         aspect_ratio: "16:9",
         resolution: "480p",
         generate_audio: false,

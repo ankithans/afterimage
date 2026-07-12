@@ -14,6 +14,7 @@ export default defineSchema({
   productions: defineTable({
     title: v.string(),
     intent: v.optional(v.string()),
+    videoDurationSeconds: v.optional(v.union(v.literal(5), v.literal(10), v.literal(15))),
     status: v.union(
       v.literal("draft"),
       v.literal("queued"),

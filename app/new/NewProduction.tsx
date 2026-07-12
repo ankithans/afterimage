@@ -22,6 +22,7 @@ export function NewProduction() {
   const [song, setSong] = useState<File | null>(null);
   const [artwork, setArtwork] = useState<File | null>(null);
   const [references, setReferences] = useState<File[]>([]);
+  const [duration, setDuration] = useState<5 | 10 | 15>(5);
   const [status, setStatus] = useState("Ready for your song");
   const [busy, setBusy] = useState(false);
 
@@ -34,6 +35,7 @@ export function NewProduction() {
       const productionId = await createProduction({
         title: title.trim() || song.name.replace(/\.[^.]+$/, ""),
         intent: intent.trim() || undefined,
+        videoDurationSeconds: duration,
       });
 
       async function upload(file: File, kind: "source_audio" | "artwork" | "reference") {
@@ -100,6 +102,25 @@ export function NewProduction() {
               value={intent}
             />
           </label>
+          <fieldset className={styles.durationField}>
+            <legend>Video length <i>Seedance story</i></legend>
+            <div>
+              {([5, 10, 15] as const).map((seconds) => (
+                <label data-selected={duration === seconds} key={seconds}>
+                  <input
+                    checked={duration === seconds}
+                    name="duration"
+                    onChange={() => setDuration(seconds)}
+                    type="radio"
+                    value={seconds}
+                  />
+                  <strong>{seconds}s</strong>
+                  <small>{seconds === 5 ? "Preview" : seconds === 10 ? "Standard" : "Extended"}</small>
+                </label>
+              ))}
+            </div>
+            <p>Longer stories use more Seedance credits and take longer to render.</p>
+          </fieldset>
           <label className={styles.dropzone} data-filled={Boolean(song)}>
             <input
               type="file"

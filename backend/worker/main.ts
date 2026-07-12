@@ -227,6 +227,7 @@ async function workOnce() {
       const storyVideo = await generateStoryVideo({
         apiKey: config.seedanceApiKey,
         prompt: `${summary}\n\nApproved context:\n${priorContext}`,
+        durationSeconds: claim.production.videoDurationSeconds ?? 5,
         imageUrls: referenceImages,
         onProgress: async (status) => {
           await convex.mutation(api.worker.postTaskUpdate, {

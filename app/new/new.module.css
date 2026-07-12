@@ -16,6 +16,18 @@
 .intentField i, .referenceFields i { color: rgba(241,238,229,.38); font-style: normal; }
 .intentField textarea { width: 100%; min-height: 88px; padding: 12px 0; resize: vertical; border: 0; border-bottom: 1px solid var(--line); outline: none; color: var(--paper); background: transparent; font: 400 16px var(--font-display); line-height: 1.45; }
 .intentField textarea:focus { border-color: var(--signal); }
+.durationField { margin: 0; padding: 0; border: 0; }
+.durationField legend { margin-bottom: 9px; color: var(--paper-muted); font: 500 9px var(--mono); text-transform: uppercase; }
+.durationField legend i { margin-left: 6px; color: rgba(241,238,229,.38); font-style: normal; }
+.durationField > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.durationField label { position: relative; display: flex; min-height: 62px; padding: 12px 14px; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid var(--line); cursor: pointer; transition: border-color 160ms ease, background 160ms ease, transform 160ms ease; }
+.durationField label:hover { border-color: var(--paper-muted); transform: translateY(-1px); }
+.durationField label[data-selected="true"] { border-color: var(--acid); background: rgba(203,255,70,.06); }
+.durationField input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.durationField strong { color: var(--paper); font-size: 18px; }
+.durationField small { color: var(--paper-muted); font: 500 8px var(--mono); text-transform: uppercase; }
+.durationField label[data-selected="true"] small { color: var(--acid); }
+.durationField > p { margin: 8px 0 0; color: var(--paper-muted); font: 400 9px var(--mono); }
 .dropzone { display: grid; min-height: 330px; padding: 34px; place-items: center; align-content: center; border: 1px dashed rgba(241,238,229,.32); cursor: pointer; transition: border-color 180ms ease, background 180ms ease; }
 .dropzone:hover, .dropzone[data-filled="true"] { border-color: var(--acid); background: rgba(217,255,87,.035); }
 .dropzone input { position: absolute; width: 1px; height: 1px; opacity: 0; }

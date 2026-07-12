@@ -11,12 +11,17 @@ const taskDefinitions = [
 ] as const;
 
 export const create = mutation({
-  args: { title: v.string(), intent: v.optional(v.string()) },
+  args: {
+    title: v.string(),
+    intent: v.optional(v.string()),
+    videoDurationSeconds: v.optional(v.union(v.literal(5), v.literal(10), v.literal(15))),
+  },
   handler: async (ctx, args) => {
     const now = Date.now();
     const productionId = await ctx.db.insert("productions", {
       title: args.title.trim() || "Untitled production",
       intent: args.intent?.trim(),
+      videoDurationSeconds: args.videoDurationSeconds ?? 5,
       status: "draft",
       activeTaskKey: taskDefinitions[0][0],
       createdAt: now,
