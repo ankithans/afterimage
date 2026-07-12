@@ -19,6 +19,7 @@
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
@@ -35,6 +36,10 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# local product plan preview (tracked canonical copy lives in /docs)
+/afterimage-next-step-plan.html
+/afterimage-build-plan.html
 
 # typescript
 *.tsbuildinfo

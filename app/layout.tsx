@@ -16,11 +16,11 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://afterimage.space"),
-  title: "afterimage — your song, on screen",
+  title: "afterimage · your song knows what it looks like",
   description:
-    "A tiny film crew that lives in your browser. Send it a song — it listens, offers three directions, then shoots, cuts and delivers your video.",
+    "A tiny film crew in your browser. Send it a song. It listens, pitches three directions, then shoots, cuts and delivers your video.",
   openGraph: {
-    title: "afterimage — your song, on screen",
+    title: "afterimage · your song knows what it looks like",
     description:
       "One song in. One visual world out. A tiny film crew for musicians.",
     url: "https://afterimage.space",
