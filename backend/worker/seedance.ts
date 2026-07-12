@@ -1,4 +1,6 @@
 const BASE_URL = "https://api.seedance2.ai";
+const PROMPT_LIMIT = 5_000;
+const STORY_DIRECTIVE = "Create a coherent cinematic micro-story with a clear beginning, turn, and emotional final image. Use real subject and camera motion, not a slideshow. No captions, logos, or watermark.";
 
 type SeedanceTask = {
   id?: string;
@@ -6,6 +8,16 @@ type SeedanceTask = {
   failed_reason?: string | null;
   data?: { results?: string[] };
 };
+
+export function prepareSeedancePrompt(prompt: string) {
+  const marker = "[Earlier detail compacted for provider]";
+  const available = PROMPT_LIMIT - STORY_DIRECTIVE.length - 1;
+  const source = prompt.trim();
+  const bounded = source.length <= available
+    ? source
+    : `${source.slice(0, Math.max(0, available - marker.length - 1)).trimEnd()}\n${marker}`;
+  return `${bounded}\n${STORY_DIRECTIVE}`;
+}
 
 export async function generateStoryVideo(input: {
   apiKey: string;
@@ -24,7 +36,7 @@ export async function generateStoryVideo(input: {
     body: JSON.stringify({
       model: "seedance-2-0",
       input: {
-        prompt: `${input.prompt}\nCreate a coherent cinematic micro-story with a clear beginning, turn, and emotional final image. Use real subject and camera motion, not a slideshow. No captions, logos, or watermark.`,
+        prompt: prepareSeedancePrompt(input.prompt),
         generation_type: imageUrls.length ? "reference-to-video" : "text-to-video",
         ...(imageUrls.length ? { image_urls: imageUrls } : {}),
         duration: input.durationSeconds,

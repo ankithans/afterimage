@@ -244,7 +244,10 @@ async function workOnce() {
         .slice(0, 9);
       const storyVideo = await generateStoryVideo({
         apiKey: config.seedanceApiKey,
-        prompt: `${summary}\n\nApproved context:\n${priorContext}`,
+        // The Video Producer's final artifact already incorporates the approved
+        // context. Re-sending every prior artifact can exceed Seedance's 5k
+        // prompt ceiling and causes an otherwise healthy lease to retry forever.
+        prompt: summary,
         durationSeconds: claim.production.videoDurationSeconds ?? 5,
         imageUrls: referenceImages,
         onProgress: async (status) => {
