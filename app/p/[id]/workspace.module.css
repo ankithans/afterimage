@@ -1,5 +1,6 @@
 .page {
-  min-height: 100svh;
+  height: 100svh;
+  overflow: hidden;
   color: var(--paper);
   background: var(--ink);
 }
@@ -28,8 +29,8 @@
 .productionName { font: 500 11px var(--mono); text-transform: uppercase; }
 .state { justify-self: end; color: var(--acid); font: 500 10px var(--mono); text-transform: uppercase; }
 
-.layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(340px, .55fr); min-height: calc(100svh - 67px); }
-.screeningRoom { padding: 30px; border-right: 1px solid var(--line); }
+.layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(340px, .55fr); height: calc(100svh - 67px); min-height: 0; }
+.screeningRoom { min-height: 0; padding: 26px 30px 80px; overflow-y: auto; overscroll-behavior: contain; border-right: 1px solid var(--line); scrollbar-color: var(--signal) transparent; }
 .screen { position: relative; display: grid; min-height: 46svh; padding: 32px; place-items: center; overflow: hidden; color: var(--paper); background: radial-gradient(circle at 50% 30%, #42271f, #181714 54%, #0a0a09); text-align: center; }
 .screen[data-mode="decision"] { min-height: 560px; padding: 70px 32px 38px; }
 .screen[data-mode="master"] { padding: 0; background: #050505; }
@@ -40,6 +41,28 @@
 .screen span { color: var(--paper-muted); }
 .signal { position: absolute; top: 20px; right: 20px; width: 8px; height: 8px; border-radius: 50%; background: var(--acid); box-shadow: 0 0 18px var(--acid); animation: pulse 1.8s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .35; } }
+
+.audioWorkbench { position: sticky; z-index: 8; top: -1px; display: grid; grid-template-columns: 44px minmax(120px,.34fr) minmax(180px,1fr) auto; gap: 14px; min-height: 72px; margin-bottom: 14px; padding: 12px 15px; align-items: center; border: 1px solid var(--line); background: rgba(15,15,13,.94); box-shadow: 0 12px 32px rgba(0,0,0,.28); backdrop-filter: blur(18px); }
+.transportButton { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid var(--signal); border-radius: 50%; color: var(--paper); background: rgba(255,90,54,.12); font-size: 13px; cursor: pointer; transition: transform 150ms ease, background 150ms ease; }
+.transportButton:hover { background: var(--signal); transform: scale(1.05); }
+.trackMeta small, .trackMeta strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trackMeta small { color: var(--signal); font: 500 8px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+.trackMeta strong { margin-top: 4px; font-size: 13px; }
+.waveform { display: flex; height: 42px; padding: 0; align-items: center; gap: 2px; border: 0; background: transparent; cursor: crosshair; }
+.waveform i { display: block; min-width: 1px; flex: 1; background: #474640; transition: height 250ms ease, background 100ms linear; }
+.waveform i[data-played="true"] { background: var(--acid); box-shadow: 0 0 6px rgba(203,255,70,.18); }
+.audioWorkbench time { min-width: 72px; color: var(--paper-muted); font: 500 9px var(--mono); text-align: right; }
+
+.productionMemory { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(230px,.65fr); gap: 12px; margin-bottom: 14px; }
+.transcriptCard, .decisionLedger { min-height: 128px; padding: 16px 18px; border: 1px solid var(--line); background: linear-gradient(135deg, #171613, #11110f); }
+.transcriptCard > div, .decisionLedger > div { display: flex; justify-content: space-between; gap: 16px; color: var(--paper-muted); font: 500 9px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+.transcriptCard b, .decisionLedger b { color: var(--acid); font-weight: 500; }
+.transcriptCard p { margin: 20px 0 0; color: var(--paper); font-size: 15px; line-height: 1.55; }
+.transcriptCard p::before { content: "“"; margin-right: 2px; color: var(--signal); font-size: 23px; }
+.decisionLedger p { display: grid; grid-template-columns: 70px 1fr; gap: 10px; margin: 14px 0 0; align-items: baseline; }
+.decisionLedger small { color: var(--signal); font: 500 8px var(--mono); text-transform: uppercase; }
+.decisionLedger strong { font-size: 12px; font-weight: 600; }
+.decisionLedger em { display: block; margin-top: 20px; color: var(--paper-muted); font-size: 12px; font-style: normal; line-height: 1.45; }
 
 .masterVideo { display: block; width: 100%; min-height: 46svh; max-height: 68svh; object-fit: contain; background: #050505; }
 .masterStage { width: 100%; }
@@ -88,13 +111,20 @@
 .task small { display: block; max-width: 680px; margin-top: 10px; color: var(--paper-muted); }
 .task code { color: var(--paper-muted); font-size: 9px; text-transform: uppercase; }
 
-.chat { display: grid; grid-template-rows: auto 1fr auto; min-height: 0; background: #151512; }
+.chat { display: grid; grid-template-rows: auto minmax(0,1fr) auto; height: 100%; min-height: 0; overflow: hidden; background: #151512; }
 .chatHeader { padding: 24px; border-bottom: 1px solid var(--line); }
+.chatHeader > div { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .chatHeader span { display: block; font-size: 20px; font-weight: 650; }
 .chatHeader small { color: var(--paper-muted); font: 400 9px var(--mono); }
-.messages { display: flex; flex-direction: column; gap: 13px; min-height: 300px; max-height: calc(100svh - 270px); padding: 20px; overflow-y: auto; }
+.chatHeader i { width: 8px; height: 8px; border-radius: 50%; background: #4b4a45; }
+.chatHeader i[data-live="true"] { background: var(--acid); box-shadow: 0 0 15px var(--acid); animation: pulse 1.25s ease-in-out infinite; }
+.chatHeader p { margin: 15px -8px -8px; padding: 10px 12px; border-left: 2px solid var(--acid); color: var(--paper-muted); background: rgba(203,255,70,.05); font: 400 10px/1.4 var(--mono); }
+.chatHeader p b { margin-right: 7px; color: var(--acid); }
+.messages { display: flex; flex-direction: column; gap: 13px; min-height: 0; padding: 20px; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: var(--signal) transparent; }
 .emptyMessage { margin: auto; max-width: 220px; color: var(--paper-muted); font-size: 13px; text-align: center; }
 .message { max-width: 90%; padding: 13px 14px; border: 1px solid var(--line); background: var(--ink); }
+.message:last-child { animation: messageIn 400ms cubic-bezier(.2,.8,.2,1) both; }
+@keyframes messageIn { from { opacity: 0; transform: translateY(8px); } }
 .message[data-author="artist"] { align-self: end; border-color: rgba(255,90,54,.4); background: rgba(255,90,54,.08); }
 .message > div { display: flex; justify-content: space-between; gap: 18px; }
 .message strong, .message span { font: 500 9px var(--mono); text-transform: uppercase; }
@@ -109,12 +139,17 @@
 .composer button:disabled { opacity: .35; cursor: not-allowed; }
 
 @media (max-width: 900px) {
+  .page { height: auto; min-height: 100svh; overflow: visible; }
   .layout { grid-template-columns: 1fr; }
-  .screeningRoom { border-right: 0; }
+  .layout { height: auto; }
+  .screeningRoom { overflow: visible; border-right: 0; }
   .chat { min-height: 650px; border-top: 1px solid var(--line); }
 }
 
 @media (max-width: 760px) {
+  .audioWorkbench { position: relative; top: auto; grid-template-columns: 44px 1fr auto; }
+  .waveform { grid-column: 1 / -1; grid-row: 2; }
+  .productionMemory { grid-template-columns: 1fr; }
   .options, .options[data-count="2"] { grid-template-columns: 1fr; }
   .option { min-height: 160px; }
   .revisionBox { grid-template-columns: 1fr; }
@@ -128,4 +163,5 @@
   .productionName { display: none; }
   .screeningRoom { padding: 14px; }
   .screen { min-height: 380px; }
+  .audioWorkbench { padding: 11px; }
 }

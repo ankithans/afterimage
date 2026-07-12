@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from "convex/react";
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, MouseEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -33,6 +33,84 @@ function formatTime(createdAt: number) {
   return new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(createdAt);
 }
 
+function formatDuration(seconds: number) {
+  if (!Number.isFinite(seconds)) return "0:00";
+  return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, "0")}`;
+}
+
+function AudioWorkbench({ title, url }: { title: string; url: string }) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [peaks, setPeaks] = useState<number[]>(Array.from({ length: 96 }, (_, index) => .2 + ((index * 17) % 11) / 18));
+  const [playing, setPlaying] = useState(false);
+  const [time, setTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function analyze() {
+      try {
+        const bytes = await fetch(url).then((response) => response.arrayBuffer());
+        const context = new AudioContext();
+        const buffer = await context.decodeAudioData(bytes.slice(0));
+        const channel = buffer.getChannelData(0);
+        const bucket = Math.max(1, Math.floor(channel.length / 96));
+        const values = Array.from({ length: 96 }, (_, index) => {
+          let max = 0;
+          for (let cursor = index * bucket; cursor < Math.min(channel.length, (index + 1) * bucket); cursor += Math.max(1, Math.floor(bucket / 120))) {
+            max = Math.max(max, Math.abs(channel[cursor]));
+          }
+          return Math.max(.08, Math.min(1, max * 1.7));
+        });
+        if (!cancelled) setPeaks(values);
+        await context.close();
+      } catch {
+        // The transport still works if a browser blocks waveform analysis.
+      }
+    }
+    void analyze();
+    return () => { cancelled = true; };
+  }, [url]);
+
+  function seek(event: MouseEvent<HTMLButtonElement>) {
+    const audio = audioRef.current;
+    if (!audio || !duration) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    audio.currentTime = ((event.clientX - bounds.left) / bounds.width) * duration;
+  }
+
+  return (
+    <section className={styles.audioWorkbench}>
+      <audio
+        onDurationChange={(event) => setDuration(event.currentTarget.duration)}
+        onEnded={() => setPlaying(false)}
+        onPause={() => setPlaying(false)}
+        onPlay={() => setPlaying(true)}
+        onTimeUpdate={(event) => setTime(event.currentTarget.currentTime)}
+        preload="metadata"
+        ref={audioRef}
+        src={url}
+      />
+      <button
+        aria-label={playing ? "Pause source song" : "Play source song"}
+        className={styles.transportButton}
+        onClick={() => playing ? audioRef.current?.pause() : void audioRef.current?.play()}
+        type="button"
+      >{playing ? "Ⅱ" : "▶"}</button>
+      <div className={styles.trackMeta}><small>Source master</small><strong>{title}</strong></div>
+      <button aria-label="Seek source song" className={styles.waveform} onClick={seek} type="button">
+        {peaks.map((peak, index) => (
+          <i
+            data-played={duration > 0 && index / peaks.length <= time / duration}
+            key={index}
+            style={{ height: `${Math.max(3, peak * 34)}px` }}
+          />
+        ))}
+      </button>
+      <time>{formatDuration(time)} / {formatDuration(duration)}</time>
+    </section>
+  );
+}
+
 export function ProductionWorkspace({ productionId }: { productionId: string }) {
   const id = productionId as Id<"productions">;
   const data = useQuery(api.productions.get, { productionId: id });
@@ -50,6 +128,10 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
     [data],
   );
   const pendingApproval = data?.approvals.find((approval) => approval.status === "pending");
+  const approvedDecisions = data?.approvals.filter((approval) => approval.status === "approved").map((approval) => ({
+    kind: approval.kind,
+    option: approval.options.find((option) => option.id === approval.selectionId),
+  })) ?? [];
   const master = [...(data?.assets ?? [])].reverse().find((asset) => asset.kind === "master" && asset.url);
   const canChat = Boolean(activeTask) && !["completed", "cancelled", "failed"].includes(data?.production.status ?? "");
 
@@ -104,6 +186,21 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
 
       <div className={styles.layout}>
         <section className={styles.screeningRoom}>
+          {data.sourceAudioUrl && <AudioWorkbench title={data.sourceAudio?.filename ?? data.production.title} url={data.sourceAudioUrl} />}
+
+          <section className={styles.productionMemory}>
+            <article className={styles.transcriptCard}>
+              <div><span>Speech transcript</span><b>{data.production.lyrics ? "captured" : "listening"}</b></div>
+              <p>{data.production.lyrics || "OpenAI speech-to-text is listening for the lyric spine…"}</p>
+            </article>
+            <article className={styles.decisionLedger}>
+              <div><span>Artist decisions</span><b>{approvedDecisions.length} locked</b></div>
+              {approvedDecisions.length ? approvedDecisions.map(({ kind, option }) => (
+                <p key={kind}><small>{kind}</small><strong>{option?.label ?? "Selection recorded"}</strong></p>
+              )) : <em>Your excerpt, world, and master decisions will collect here.</em>}
+            </article>
+          </section>
+
           <div className={styles.screen} data-mode={master ? "master" : pendingApproval ? "decision" : "live"}>
             <span className={styles.screenLabel}>{master ? "CURRENT MASTER" : pendingApproval ? "ARTIST DECISION" : "LIVE PRODUCTION"}</span>
             {!pendingApproval && data.production.status !== "completed" && <div className={styles.signal} />}
@@ -200,8 +297,9 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
 
         <aside className={styles.chat}>
           <div className={styles.chatHeader}>
-            <span>Production conversation</span>
-            <small>Direction is attached to the active Hermes skill</small>
+            <div><span>Hermes live thread</span><i data-live={data.production.status === "working"} /></div>
+            <small>{activeTask ? `${activeTask.role} · ${activeTask.skill}` : "Production record"}</small>
+            {data.production.status === "working" && <p><b>LIVE</b> Hermes is inside this skill now. Checkpoints appear here as they land.</p>}
           </div>
           <div className={styles.messages}>
             {data.messages.length === 0 && (

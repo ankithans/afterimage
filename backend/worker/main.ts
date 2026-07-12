@@ -97,6 +97,12 @@ async function workOnce() {
       filename: claim.sourceAudio?.filename,
       contentType: claim.sourceAudio?.contentType,
     });
+    await convex.mutation(api.worker.postTaskUpdate, {
+      productionId: claim.production._id,
+      taskKey: claim.task.key,
+      text: `Transcript captured:\n\n${lyrics}`,
+      secret: config.workerSecret,
+    });
   }
 
   const basePrompt = buildHermesPrompt({
@@ -125,12 +131,22 @@ async function workOnce() {
     secret: config.workerSecret,
   });
 
+  let heartbeatTicks = 0;
   const heartbeat = setInterval(() => {
+    heartbeatTicks += 1;
     void convex.mutation(api.worker.heartbeat, {
       productionId: claim.production._id,
       workerId: config.workerId,
       secret: config.workerSecret,
     }).catch((error) => console.warn("Heartbeat rejected; task completion will be fenced", error));
+    if (heartbeatTicks % 2 === 0 && heartbeatTicks <= 6) {
+      void convex.mutation(api.worker.postTaskUpdate, {
+        productionId: claim.production._id,
+        taskKey: claim.task.key,
+        text: `${claim.task.role} is still working inside ${claim.task.skill}. The production lease is healthy; the next checkpoint will appear here.`,
+        secret: config.workerSecret,
+      }).catch((error) => console.warn("Could not publish live Hermes checkpoint", error));
+    }
   }, 15_000);
 
   try {
@@ -163,6 +179,12 @@ async function workOnce() {
         ],
       };
     } else if (claim.task.key === "produce-shots") {
+      await convex.mutation(api.worker.postTaskUpdate, {
+        productionId: claim.production._id,
+        taskKey: claim.task.key,
+        text: "The production prompt is locked. OpenAI is generating the approved hero frame now.",
+        secret: config.workerSecret,
+      });
       const image = await generateHeroImage({ apiKey: config.openAiApiKey, prompt: summary });
       const assetId = await uploadAsset({
         productionId: claim.production._id,
@@ -176,6 +198,12 @@ async function workOnce() {
     } else if (claim.task.key === "compose-master") {
       const imageAsset = [...claim.assets].reverse().find((asset) => asset.kind === "generated_image" && asset.url);
       if (!imageAsset?.url || !claim.sourceAudioUrl) throw new Error("Master inputs are incomplete");
+      await convex.mutation(api.worker.postTaskUpdate, {
+        productionId: claim.production._id,
+        taskKey: claim.task.key,
+        text: "Picture and source audio are ready. FFmpeg is assembling the review master.",
+        secret: config.workerSecret,
+      });
       const master = await renderMaster({ imageUrl: imageAsset.url, audioUrl: claim.sourceAudioUrl });
       masterAssetId = await uploadAsset({
         productionId: claim.production._id,
@@ -187,6 +215,12 @@ async function workOnce() {
       artifactKind = "master_version";
       artifactPayload = { summary, masterAssetId };
     } else if (claim.task.key === "quality-check") {
+      await convex.mutation(api.worker.postTaskUpdate, {
+        productionId: claim.production._id,
+        taskKey: claim.task.key,
+        text: `Media inspection passed: ${qualityEvidence?.videoCodec?.toUpperCase()} video, ${qualityEvidence?.audioCodec?.toUpperCase()} audio, ${qualityEvidence?.width}×${qualityEvidence?.height}, ${qualityEvidence?.durationSeconds.toFixed(2)} seconds.`,
+        secret: config.workerSecret,
+      });
       artifactKind = "delivery_qa";
       artifactPayload = { summary, ...qualityEvidence };
     }
