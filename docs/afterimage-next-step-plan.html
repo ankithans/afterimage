@@ -1,0 +1,1900 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="AfterImage product target, UX system, technical capabilities, and build order for the AI as Agency hackathon track."
+    />
+    <title>AfterImage — Next Step Plan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #11110f;
+        --ink-2: #1b1b18;
+        --ink-3: #292924;
+        --paper: #f1eee5;
+        --paper-2: #e5e0d4;
+        --muted: #9b978e;
+        --line: rgba(241, 238, 229, 0.17);
+        --line-dark: rgba(17, 17, 15, 0.18);
+        --signal: #ff5a36;
+        --signal-soft: #ffb09d;
+        --acid: #d9ff57;
+        --blue: #79a7ff;
+        --success: #8dd89c;
+        --warning: #ffc85a;
+        --danger: #ff7878;
+        --radius: 10px;
+        --radius-lg: 18px;
+        --display: "Bricolage Grotesque", "Arial Narrow", sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, monospace;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--paper);
+        background:
+          radial-gradient(circle at 82% 10%, rgba(255, 90, 54, 0.13), transparent 28rem),
+          linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px), var(--ink);
+        background-size: auto, 36px 36px, 36px 36px, auto;
+        font-family: var(--display);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        color: inherit;
+      }
+
+      .skip {
+        position: fixed;
+        z-index: 100;
+        top: 12px;
+        left: 12px;
+        padding: 10px 14px;
+        color: var(--ink);
+        background: var(--acid);
+        transform: translateY(-180%);
+      }
+
+      .skip:focus {
+        transform: translateY(0);
+      }
+
+      .shell {
+        width: min(1480px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .masthead {
+        position: sticky;
+        z-index: 30;
+        top: 0;
+        border-bottom: 1px solid var(--line);
+        background: rgba(17, 17, 15, 0.86);
+        backdrop-filter: blur(18px);
+      }
+
+      .masthead-inner {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        min-height: 66px;
+        gap: 18px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        width: fit-content;
+        text-decoration: none;
+        font-weight: 750;
+        letter-spacing: -0.04em;
+      }
+
+      .brand-mark {
+        position: relative;
+        width: 22px;
+        height: 22px;
+        border: 2px solid var(--paper);
+        border-radius: 50%;
+      }
+
+      .brand-mark::after {
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--signal);
+        content: "";
+        inset: 50% auto auto 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 18px var(--signal);
+      }
+
+      .track {
+        color: var(--muted);
+        font: 500 10px/1 var(--mono);
+        letter-spacing: 0.12em;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      .masthead-meta {
+        justify-self: end;
+        color: var(--muted);
+        font: 500 10px/1 var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .hero {
+        min-height: calc(100vh - 66px);
+        display: grid;
+        grid-template-columns: minmax(0, 1.42fr) minmax(320px, 0.58fr);
+        align-items: end;
+        gap: clamp(32px, 6vw, 96px);
+        padding: clamp(84px, 10vw, 150px) 0 48px;
+      }
+
+      .eyebrow,
+      .section-number,
+      .micro {
+        color: var(--signal);
+        font: 600 11px/1.25 var(--mono);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        max-width: 1050px;
+        margin-bottom: 30px;
+        font-size: clamp(64px, 10vw, 156px);
+        font-stretch: condensed;
+        font-weight: 750;
+        letter-spacing: -0.075em;
+        line-height: 0.82;
+      }
+
+      h1 .outline {
+        color: transparent;
+        -webkit-text-stroke: 1.5px var(--paper);
+      }
+
+      .mobile-break {
+        display: none;
+      }
+
+      .hero-copy {
+        max-width: 720px;
+        margin-bottom: 38px;
+        color: #c9c5bc;
+        font-size: clamp(18px, 2vw, 28px);
+        line-height: 1.25;
+        letter-spacing: -0.025em;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 20px;
+        border: 1px solid var(--paper);
+        border-radius: 999px;
+        text-decoration: none;
+        font: 600 12px/1 var(--mono);
+        letter-spacing: 0.02em;
+        transition: transform 180ms ease, color 180ms ease, background 180ms ease;
+      }
+
+      .button:hover,
+      .button:focus-visible {
+        transform: translateY(-2px);
+      }
+
+      .button.primary {
+        border-color: var(--signal);
+        color: var(--ink);
+        background: var(--signal);
+      }
+
+      .hero-contract {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.035);
+        box-shadow: var(--shadow);
+      }
+
+      .contract-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--line);
+        font: 500 10px/1 var(--mono);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .live-dot {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--success);
+      }
+
+      .live-dot::before {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        content: "";
+        box-shadow: 0 0 0 5px rgba(141, 216, 156, 0.12);
+      }
+
+      .contract-body {
+        padding: 26px 22px 12px;
+      }
+
+      .contract-row {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 12px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .contract-row:last-child {
+        border-bottom: 0;
+      }
+
+      .contract-row strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 15px;
+      }
+
+      .contract-row span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .contract-index {
+        color: var(--signal);
+        font: 600 11px/1.4 var(--mono);
+      }
+
+      .contract-foot {
+        padding: 18px 22px;
+        color: var(--ink);
+        background: var(--acid);
+        font: 600 12px/1.5 var(--mono);
+      }
+
+      .section-index {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 14px 0;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        scrollbar-width: none;
+      }
+
+      .section-index::-webkit-scrollbar {
+        display: none;
+      }
+
+      .section-index a {
+        flex: 0 0 auto;
+        padding: 9px 12px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        color: var(--muted);
+        text-decoration: none;
+        font: 500 11px/1 var(--mono);
+        transition: 160ms ease;
+      }
+
+      .section-index a:hover,
+      .section-index a.active {
+        border-color: var(--line);
+        color: var(--paper);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      section {
+        scroll-margin-top: 96px;
+        padding: clamp(84px, 9vw, 140px) 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: 140px minmax(0, 1fr);
+        gap: 22px;
+        margin-bottom: 52px;
+      }
+
+      h2 {
+        max-width: 1050px;
+        margin-bottom: 16px;
+        font-size: clamp(42px, 7vw, 94px);
+        font-weight: 700;
+        letter-spacing: -0.06em;
+        line-height: 0.94;
+      }
+
+      .section-intro {
+        max-width: 760px;
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 19px;
+        line-height: 1.5;
+      }
+
+      .target-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr 0.8fr;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+
+      .target-card {
+        min-height: 330px;
+        padding: clamp(24px, 3vw, 42px);
+        border-right: 1px solid var(--line);
+      }
+
+      .target-card:last-child {
+        border-right: 0;
+      }
+
+      .target-card.primary-card {
+        color: var(--ink);
+        background: var(--paper);
+      }
+
+      .target-card h3 {
+        margin: 24px 0 14px;
+        font-size: clamp(28px, 3vw, 42px);
+        letter-spacing: -0.045em;
+        line-height: 1;
+      }
+
+      .target-card p {
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.55;
+      }
+
+      .primary-card p {
+        color: #5b5953;
+      }
+
+      .target-card ul {
+        margin: 26px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .target-card li {
+        position: relative;
+        padding: 11px 0 11px 22px;
+        border-top: 1px solid currentColor;
+        border-color: rgba(128, 126, 119, 0.25);
+        font: 500 12px/1.4 var(--mono);
+      }
+
+      .target-card li::before {
+        position: absolute;
+        left: 0;
+        color: var(--signal);
+        content: "↳";
+      }
+
+      .agency-proof {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: start;
+        gap: 22px;
+        margin-top: 24px;
+        padding: 24px;
+        border: 1px solid rgba(217, 255, 87, 0.34);
+        border-radius: var(--radius);
+        background: rgba(217, 255, 87, 0.055);
+      }
+
+      .agency-proof .badge {
+        padding: 8px 10px;
+        border-radius: 999px;
+        color: var(--ink);
+        background: var(--acid);
+        font: 600 10px/1 var(--mono);
+      }
+
+      .agency-proof p {
+        margin: 0;
+        color: #d4d0c6;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+
+      .pipeline {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+
+      .stage-button {
+        position: relative;
+        min-height: 240px;
+        padding: 20px;
+        border: 0;
+        border-right: 1px solid var(--line);
+        text-align: left;
+        background: transparent;
+        cursor: pointer;
+        transition: color 180ms ease, background 180ms ease;
+      }
+
+      .stage-button:last-child {
+        border-right: 0;
+      }
+
+      .stage-button:hover,
+      .stage-button.active {
+        color: var(--ink);
+        background: var(--paper);
+      }
+
+      .stage-button .step {
+        display: block;
+        margin-bottom: 74px;
+        color: var(--signal);
+        font: 600 11px/1 var(--mono);
+      }
+
+      .stage-button strong {
+        display: block;
+        font-size: 21px;
+        letter-spacing: -0.035em;
+      }
+
+      .stage-button small {
+        display: block;
+        margin-top: 7px;
+        color: var(--muted);
+        font: 400 11px/1.45 var(--mono);
+      }
+
+      .stage-detail {
+        display: grid;
+        grid-template-columns: 0.55fr 1.45fr;
+        gap: 32px;
+        margin-top: 14px;
+        padding: 28px;
+        border-radius: var(--radius-lg);
+        color: var(--ink);
+        background: var(--signal);
+      }
+
+      .stage-detail h3 {
+        margin-bottom: 6px;
+        font-size: 34px;
+        letter-spacing: -0.05em;
+      }
+
+      .stage-detail .micro {
+        color: rgba(17, 17, 15, 0.62);
+      }
+
+      .stage-detail p {
+        max-width: 760px;
+        margin-bottom: 0;
+        font-size: 18px;
+        line-height: 1.45;
+      }
+
+      .workspace {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: #080807;
+        box-shadow: var(--shadow);
+      }
+
+      .workspace-topbar {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--line);
+        font: 500 10px/1 var(--mono);
+      }
+
+      .workspace-topbar .center {
+        color: var(--muted);
+      }
+
+      .workspace-topbar .right {
+        justify-self: end;
+      }
+
+      .workspace-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.55fr);
+        min-height: 600px;
+      }
+
+      .screening-room {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 520px;
+        overflow: hidden;
+        border-right: 1px solid var(--line);
+        background:
+          radial-gradient(circle at 42% 54%, rgba(255, 90, 54, 0.24), transparent 22%),
+          linear-gradient(145deg, #0b0b0a 22%, #171712 55%, #0b0b0a 100%);
+      }
+
+      .video-frame {
+        position: relative;
+        width: min(78%, 760px);
+        aspect-ratio: 16 / 9;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background:
+          radial-gradient(ellipse at 50% 90%, rgba(255, 203, 107, 0.7) 0 5%, transparent 26%),
+          radial-gradient(circle at 66% 40%, rgba(255, 90, 54, 0.8), transparent 20%),
+          radial-gradient(circle at 28% 48%, rgba(121, 167, 255, 0.56), transparent 19%),
+          linear-gradient(125deg, #120c1f, #17100c 48%, #031823);
+        box-shadow: 0 34px 110px rgba(0, 0, 0, 0.6);
+      }
+
+      .video-frame::before,
+      .video-frame::after {
+        position: absolute;
+        inset: -25%;
+        background: repeating-conic-gradient(from 10deg, transparent 0 8deg, rgba(255, 255, 255, 0.06) 8deg 11deg);
+        content: "";
+        animation: turn 22s linear infinite;
+        mix-blend-mode: screen;
+      }
+
+      .video-frame::after {
+        inset: 14% 26%;
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        background: rgba(255, 255, 255, 0.04);
+        animation: breathe 5s ease-in-out infinite;
+        transform: rotate(-9deg);
+      }
+
+      .timecode {
+        position: absolute;
+        right: 16px;
+        bottom: 13px;
+        z-index: 2;
+        font: 500 10px/1 var(--mono);
+      }
+
+      .screen-label {
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        color: var(--muted);
+        font: 500 10px/1 var(--mono);
+      }
+
+      .workspace-panel {
+        display: flex;
+        flex-direction: column;
+        padding: 26px;
+      }
+
+      .workspace-panel h3 {
+        margin: 18px 0 10px;
+        font-size: 32px;
+        letter-spacing: -0.05em;
+      }
+
+      .workspace-panel > p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .agency-events {
+        margin: 22px 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .agency-events li {
+        display: grid;
+        grid-template-columns: 12px 1fr;
+        gap: 10px;
+        padding: 12px 0;
+        border-top: 1px solid var(--line);
+        color: #cdc9c0;
+        font: 400 11px/1.5 var(--mono);
+      }
+
+      .event-dot {
+        width: 7px;
+        height: 7px;
+        margin-top: 4px;
+        border: 1px solid currentColor;
+        border-radius: 50%;
+        color: var(--muted);
+      }
+
+      .event-dot.done {
+        border-color: var(--success);
+        background: var(--success);
+      }
+
+      .event-dot.live {
+        border-color: var(--signal);
+        background: var(--signal);
+        box-shadow: 0 0 0 5px rgba(255, 90, 54, 0.11);
+      }
+
+      .revision-box {
+        margin-top: auto;
+        padding: 13px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        color: #d7d3c9;
+        background: #11110f;
+        font: 400 11px/1.5 var(--mono);
+      }
+
+      .revision-box span {
+        display: block;
+        margin-top: 12px;
+        color: var(--signal);
+      }
+
+      .filmstrip {
+        display: grid;
+        grid-template-columns: 110px repeat(3, 1fr);
+        gap: 9px;
+        padding: 12px;
+        border-top: 1px solid var(--line);
+        background: #0e0e0c;
+      }
+
+      .audio-track,
+      .shot {
+        min-height: 72px;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font: 500 9px/1.35 var(--mono);
+      }
+
+      .audio-track {
+        color: var(--ink);
+        background: var(--acid);
+      }
+
+      .shot {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(145deg, #251722, #13232f);
+      }
+
+      .shot:nth-child(3) {
+        background: linear-gradient(145deg, #35210f, #171710);
+      }
+
+      .shot:nth-child(4) {
+        background: linear-gradient(145deg, #0e2530, #2e1323);
+      }
+
+      .shot::after {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        color: var(--muted);
+        content: attr(data-time);
+      }
+
+      .research-note {
+        margin-top: 20px;
+        color: var(--muted);
+        font: 400 11px/1.65 var(--mono);
+      }
+
+      .research-note a {
+        color: var(--paper);
+        text-underline-offset: 3px;
+      }
+
+      .filter-bar {
+        display: flex;
+        gap: 7px;
+        margin-bottom: 18px;
+      }
+
+      .filter-button {
+        padding: 10px 13px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: transparent;
+        cursor: pointer;
+        font: 500 10px/1 var(--mono);
+      }
+
+      .filter-button:hover,
+      .filter-button.active {
+        color: var(--ink);
+        background: var(--paper);
+      }
+
+      .capability-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .capability {
+        display: flex;
+        min-height: 285px;
+        flex-direction: column;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.025);
+        transition: transform 180ms ease, border-color 180ms ease;
+      }
+
+      .capability:hover {
+        border-color: rgba(255, 90, 54, 0.5);
+        transform: translateY(-3px);
+      }
+
+      .capability.hidden {
+        display: none;
+      }
+
+      .priority {
+        width: fit-content;
+        padding: 6px 8px;
+        border: 1px solid currentColor;
+        border-radius: 999px;
+        color: var(--signal);
+        font: 600 9px/1 var(--mono);
+      }
+
+      .capability[data-priority="p1"] .priority {
+        color: var(--blue);
+      }
+
+      .capability[data-priority="later"] .priority {
+        color: var(--muted);
+      }
+
+      .capability h3 {
+        margin: 26px 0 11px;
+        font-size: 24px;
+        letter-spacing: -0.04em;
+      }
+
+      .capability p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .proof-gate {
+        margin-top: auto;
+        padding-top: 17px;
+        border-top: 1px solid var(--line);
+        color: #d4d0c7;
+        font: 400 10px/1.55 var(--mono);
+      }
+
+      .proof-gate strong {
+        color: var(--success);
+        font-weight: 600;
+      }
+
+      .architecture {
+        display: grid;
+        grid-template-columns: 0.8fr 1.4fr 0.8fr;
+        gap: 14px;
+        align-items: stretch;
+      }
+
+      .arch-column {
+        display: grid;
+        gap: 12px;
+      }
+
+      .arch-node {
+        position: relative;
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .arch-node.accent {
+        color: var(--ink);
+        background: var(--paper);
+      }
+
+      .arch-node.signal {
+        color: var(--ink);
+        background: var(--signal);
+      }
+
+      .arch-node strong {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 18px;
+      }
+
+      .arch-node span {
+        color: var(--muted);
+        font: 400 10px/1.5 var(--mono);
+      }
+
+      .arch-node.accent span,
+      .arch-node.signal span {
+        color: rgba(17, 17, 15, 0.62);
+      }
+
+      .arch-label {
+        padding: 2px 3px;
+        color: var(--muted);
+        font: 500 9px/1 var(--mono);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .stack-lock {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .stack-item {
+        min-height: 160px;
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+      }
+
+      .stack-item strong {
+        display: block;
+        margin-bottom: 18px;
+        color: var(--signal);
+        font: 600 10px/1 var(--mono);
+        text-transform: uppercase;
+      }
+
+      .stack-item p {
+        margin: 0;
+        color: #d5d0c8;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .system-grid {
+        display: grid;
+        grid-template-columns: 0.85fr 1.15fr;
+        gap: 12px;
+      }
+
+      .system-card {
+        padding: clamp(24px, 4vw, 48px);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+      }
+
+      .system-card.paper {
+        color: var(--ink);
+        background: var(--paper);
+      }
+
+      .system-card h3 {
+        margin: 20px 0 24px;
+        font-size: 36px;
+        letter-spacing: -0.05em;
+      }
+
+      .principle {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 10px;
+        padding: 17px 0;
+        border-top: 1px solid var(--line-dark);
+      }
+
+      .system-card:not(.paper) .principle {
+        border-color: var(--line);
+      }
+
+      .principle b {
+        color: var(--signal);
+        font: 600 11px/1.5 var(--mono);
+      }
+
+      .principle strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 16px;
+      }
+
+      .principle span {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .token-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        margin-top: 30px;
+      }
+
+      .swatch {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: end;
+        padding: 9px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 7px;
+        font: 500 8px/1.2 var(--mono);
+      }
+
+      .swatch:nth-child(1) { background: var(--ink); }
+      .swatch:nth-child(2) { color: var(--ink); background: var(--paper); }
+      .swatch:nth-child(3) { color: var(--ink); background: var(--signal); }
+      .swatch:nth-child(4) { color: var(--ink); background: var(--acid); }
+      .swatch:nth-child(5) { color: var(--ink); background: var(--blue); }
+
+      .route-list {
+        margin: 28px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .route-list li {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 14px;
+        padding: 14px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .route-list code {
+        color: var(--acid);
+        font: 500 11px/1.4 var(--mono);
+      }
+
+      .route-list span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .build-list {
+        position: relative;
+        max-width: 1080px;
+        margin-left: auto;
+      }
+
+      .build-step {
+        display: grid;
+        grid-template-columns: 90px 0.8fr 1.2fr;
+        gap: 24px;
+        padding: 30px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .build-step:last-child {
+        border-bottom: 1px solid var(--line);
+      }
+
+      .build-step .num {
+        color: var(--signal);
+        font: 600 14px/1 var(--mono);
+      }
+
+      .build-step h3 {
+        margin: 0;
+        font-size: 23px;
+        letter-spacing: -0.04em;
+      }
+
+      .build-step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .build-step p strong {
+        color: var(--success);
+      }
+
+      .done-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .done-item {
+        display: grid;
+        grid-template-columns: 24px 1fr;
+        gap: 13px;
+        min-height: 104px;
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+      }
+
+      .check {
+        display: grid;
+        place-items: center;
+        width: 22px;
+        height: 22px;
+        border: 1px solid var(--success);
+        border-radius: 50%;
+        color: var(--success);
+        font: 600 10px/1 var(--mono);
+      }
+
+      .done-item strong {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 15px;
+      }
+
+      .done-item span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .source-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      .source-card {
+        min-height: 230px;
+        display: flex;
+        flex-direction: column;
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        text-decoration: none;
+        transition: 180ms ease;
+      }
+
+      .source-card:hover {
+        border-color: var(--signal);
+        background: rgba(255, 90, 54, 0.05);
+        transform: translateY(-3px);
+      }
+
+      .source-card strong {
+        display: block;
+        margin: 28px 0 10px;
+        font-size: 21px;
+      }
+
+      .source-card p {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .source-card .link-label {
+        margin-top: auto;
+        color: var(--signal);
+        font: 500 10px/1 var(--mono);
+      }
+
+      .final-call {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 24px;
+        padding: clamp(34px, 6vw, 74px);
+        border-radius: var(--radius-lg);
+        color: var(--ink);
+        background: var(--acid);
+      }
+
+      .final-call h2 {
+        max-width: 900px;
+        margin: 12px 0 0;
+        font-size: clamp(48px, 7vw, 104px);
+      }
+
+      .final-call p {
+        max-width: 520px;
+        margin: 0 0 6px;
+        font: 500 12px/1.6 var(--mono);
+      }
+
+      footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 28px 0 42px;
+        color: var(--muted);
+        font: 400 10px/1.4 var(--mono);
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(18px);
+        transition: opacity 560ms ease, transform 560ms ease;
+      }
+
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @keyframes turn {
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes breathe {
+        50% { opacity: 0.35; transform: rotate(5deg) scale(1.14); }
+      }
+
+      @media (max-width: 1060px) {
+        .hero,
+        .system-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .target-grid,
+        .capability-grid,
+        .source-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .target-card {
+          border-bottom: 1px solid var(--line);
+        }
+
+        .target-card:nth-child(2) {
+          border-right: 0;
+        }
+
+        .target-card:last-child {
+          grid-column: 1 / -1;
+        }
+
+        .pipeline {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .stage-button:nth-child(3) {
+          border-right: 0;
+        }
+
+        .stage-button:nth-child(-n + 3) {
+          border-bottom: 1px solid var(--line);
+        }
+
+        .workspace-body,
+        .architecture {
+          grid-template-columns: 1fr;
+        }
+
+        .screening-room {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .stack-lock {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 720px) {
+        .shell {
+          width: min(100% - 20px, 1480px);
+        }
+
+        .masthead-inner {
+          grid-template-columns: 1fr auto;
+        }
+
+        .track {
+          display: none;
+        }
+
+        .hero {
+          min-height: auto;
+          align-items: stretch;
+          padding-top: 70px;
+        }
+
+        h1 {
+          font-size: clamp(58px, 18vw, 74px);
+          line-height: 0.9;
+        }
+
+        .mobile-break {
+          display: block;
+        }
+
+        .section-head,
+        .stage-detail,
+        .final-call {
+          grid-template-columns: 1fr;
+        }
+
+        .target-grid,
+        .capability-grid,
+        .source-grid,
+        .done-grid,
+        .stack-lock {
+          grid-template-columns: 1fr;
+        }
+
+        .target-card,
+        .target-card:nth-child(2) {
+          grid-column: auto;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .pipeline {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .stage-button:nth-child(3) {
+          border-right: 1px solid var(--line);
+        }
+
+        .stage-button:nth-child(even) {
+          border-right: 0;
+        }
+
+        .stage-button:nth-child(-n + 4) {
+          border-bottom: 1px solid var(--line);
+        }
+
+        .filmstrip {
+          grid-template-columns: 1fr;
+        }
+
+        .build-step {
+          grid-template-columns: 44px 1fr;
+        }
+
+        .build-step p {
+          grid-column: 2;
+        }
+
+        .route-list li {
+          grid-template-columns: 1fr;
+        }
+
+        footer {
+          flex-direction: column;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+        .reveal { opacity: 1; transform: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to plan</a>
+
+    <header class="masthead">
+      <div class="shell masthead-inner">
+        <a class="brand" href="#top" aria-label="AfterImage plan home">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>AfterImage</span>
+        </a>
+        <div class="track">AI as Agency / Hackathon target</div>
+        <div class="masthead-meta">afterimage.space · Plan v1.1</div>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="shell" id="top">
+        <div class="hero">
+          <div>
+            <div class="eyebrow">Locked idea · autonomous creative production</div>
+            <h1>One song in.<br /><span class="outline">One visual<br class="mobile-break" />world out.</span></h1>
+            <p class="hero-copy">
+              AfterImage is a playful AI video agency for musicians. It listens, directs, produces, edits,
+              critiques, and delivers one concert-grade visual—without making the artist operate a video suite.
+            </p>
+            <div class="actions">
+              <a class="button primary" href="#pipeline">Walk the golden path →</a>
+              <a class="button" href="#build">See build order</a>
+            </div>
+          </div>
+
+          <aside class="hero-contract reveal" aria-label="MVP contract">
+            <div class="contract-head">
+              <span>MVP contract</span>
+              <span class="live-dot">Locked</span>
+            </div>
+            <div class="contract-body">
+              <div class="contract-row">
+                <span class="contract-index">01</span>
+                <div><strong>Input</strong><span>One song, lyrics, cover art, optional sentence of intent</span></div>
+              </div>
+              <div class="contract-row">
+                <span class="contract-index">02</span>
+                <div><strong>Agency</strong><span>Analysis → 3 directions → production → self-QA</span></div>
+              </div>
+              <div class="contract-row">
+                <span class="contract-index">03</span>
+                <div><strong>Output</strong><span>One polished 20–30 second 16:9 MP4 with synced audio</span></div>
+              </div>
+              <div class="contract-row">
+                <span class="contract-index">04</span>
+                <div><strong>Control</strong><span>One treatment choice and one conversational revision</span></div>
+              </div>
+            </div>
+            <div class="contract-foot">Production target: https://afterimage.space · no backstage render repair.</div>
+          </aside>
+        </div>
+
+        <nav class="section-index" aria-label="Plan sections">
+          <a href="#target">01 Target</a>
+          <a href="#pipeline">02 Pipeline</a>
+          <a href="#ux">03 UX</a>
+          <a href="#capabilities">04 Capabilities</a>
+          <a href="#architecture">05 Architecture</a>
+          <a href="#system">06 Design system</a>
+          <a href="#build">07 Build order</a>
+          <a href="#done">08 Done means</a>
+          <a href="#research">09 Research</a>
+        </nav>
+
+        <section id="target">
+          <div class="section-head reveal">
+            <span class="section-number">01 / Target</span>
+            <div>
+              <h2>Prove the agency, not a feature catalog.</h2>
+              <p class="section-intro">
+                The wedge is deliberately narrow: AfterImage must take one real artist from raw song to finished
+                visual. Breadth comes only after that run is reliable, resumable, and beautiful.
+              </p>
+            </div>
+          </div>
+
+          <div class="target-grid reveal">
+            <article class="target-card primary-card">
+              <span class="micro">The product</span>
+              <h3>A creative agency in one focused workspace.</h3>
+              <p>
+                The artist makes creative decisions. The agency handles model selection, shot prompts, retries,
+                Hydra layering, editing, render settings, and quality control.
+              </p>
+              <ul>
+                <li>Artifact-first: the video is always the hero</li>
+                <li>One clear decision at every approval point</li>
+                <li>Agency work is visible as meaningful production events</li>
+              </ul>
+            </article>
+            <article class="target-card">
+              <span class="micro">Win condition</span>
+              <h3>Clean run, no backstage rescue.</h3>
+              <p>A fresh user can complete the pipeline from the deployed app and download a coherent master.</p>
+              <ul>
+                <li>20–30 second final master</li>
+                <li>Three distinct director treatments</li>
+                <li>One revision produces version 2</li>
+                <li>Reload resumes the correct state</li>
+              </ul>
+            </article>
+            <article class="target-card">
+              <span class="micro">Not now</span>
+              <h3>Keep the surface small.</h3>
+              <p>These are valuable add-ons, but each creates a second product before the first one works.</p>
+              <ul>
+                <li>No manual timeline editor</li>
+                <li>No full-song or album workflow</li>
+                <li>No live-show controller</li>
+                <li>No collaboration, billing, or marketplace</li>
+                <li>No vertical/square exports yet</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="agency-proof reveal">
+            <span class="badge">AI as Agency proof</span>
+            <p>
+              Five specialist roles create durable artifacts and hand them off: Music Analyst → Creative Director →
+              Video Producer → Motion Editor → QA Director. The UI presents one calm “AfterImage Producer,” while
+              the activity feed proves delegation, judgment, retries, and a human approval boundary.
+            </p>
+          </div>
+        </section>
+
+        <section id="pipeline">
+          <div class="section-head reveal">
+            <span class="section-number">02 / Golden path</span>
+            <div>
+              <h2>Six stages. Two decisions. One master.</h2>
+              <p class="section-intro">
+                Every stage ends in a typed artifact that the next role consumes. Click a stage to see its product
+                contract.
+              </p>
+            </div>
+          </div>
+
+          <div class="pipeline reveal" role="tablist" aria-label="Production stages">
+            <button class="stage-button active" role="tab" aria-selected="true" data-stage="0">
+              <span class="step">01</span><strong>Brief</strong><small>Upload + intent</small>
+            </button>
+            <button class="stage-button" role="tab" aria-selected="false" data-stage="1">
+              <span class="step">02</span><strong>Listen</strong><small>Structure + story</small>
+            </button>
+            <button class="stage-button" role="tab" aria-selected="false" data-stage="2">
+              <span class="step">03</span><strong>Direct</strong><small>3 treatments</small>
+            </button>
+            <button class="stage-button" role="tab" aria-selected="false" data-stage="3">
+              <span class="step">04</span><strong>Produce</strong><small>Clips + graphics</small>
+            </button>
+            <button class="stage-button" role="tab" aria-selected="false" data-stage="4">
+              <span class="step">05</span><strong>Review</strong><small>Master + revision</small>
+            </button>
+            <button class="stage-button" role="tab" aria-selected="false" data-stage="5">
+              <span class="step">06</span><strong>Deliver</strong><small>QA + export</small>
+            </button>
+          </div>
+          <div class="stage-detail reveal" aria-live="polite">
+            <div>
+              <div class="micro" id="stage-kicker">Stage 01 artifact</div>
+              <h3 id="stage-title">Production brief</h3>
+            </div>
+            <p id="stage-copy">
+              Upload the song, optional lyrics and cover art, then write one sentence about the intended feeling.
+              AfterImage asks only questions that materially change production.
+            </p>
+          </div>
+        </section>
+
+        <section id="ux">
+          <div class="section-head reveal">
+            <span class="section-number">03 / UX direction</span>
+            <div>
+              <h2>A screening room, not a dashboard.</h2>
+              <p class="section-intro">
+                Keep the output central, the stage obvious, and the next decision close. Production machinery stays
+                one level below the surface.
+              </p>
+            </div>
+          </div>
+
+          <div class="workspace reveal" aria-label="AfterImage workspace concept">
+            <div class="workspace-topbar">
+              <span>AfterImage / Anuv Jain</span>
+              <span class="center">Direction approved · Producing</span>
+              <span class="right">Master 01</span>
+            </div>
+            <div class="workspace-body">
+              <div class="screening-room">
+                <span class="screen-label">LIVE PREVIEW · 1920 × 1080</span>
+                <div class="video-frame"><span class="timecode">00:18:04 / 00:26:00</span></div>
+              </div>
+              <aside class="workspace-panel">
+                <div class="micro">The agency is working</div>
+                <h3>Glasshouse Memory</h3>
+                <p>Warm decay, delayed reflections, and figures that disappear one beat after the chorus lands.</p>
+                <ul class="agency-events">
+                  <li><i class="event-dot done"></i><span>Music Analyst locked the 26s chorus arc</span></li>
+                  <li><i class="event-dot done"></i><span>Director approved treatment 02 of 03</span></li>
+                  <li><i class="event-dot done"></i><span>Shot 01 passed continuity + motion QA</span></li>
+                  <li><i class="event-dot live"></i><span>Video Producer is regenerating shot 02 — subject drift</span></li>
+                  <li><i class="event-dot"></i><span>Motion Editor will assemble after shot 03</span></li>
+                </ul>
+                <div class="revision-box">
+                  “Keep the figure, but make the chorus feel less literal and more overwhelming.”
+                  <span>Send revision →</span>
+                </div>
+              </aside>
+            </div>
+            <div class="filmstrip">
+              <div class="audio-track">AUDIO<br />CHORUS ARC</div>
+              <div class="shot" data-time="00–08s">SHOT 01 · ARRIVAL</div>
+              <div class="shot" data-time="08–17s">SHOT 02 · BREAK</div>
+              <div class="shot" data-time="17–26s">SHOT 03 · AFTERIMAGE</div>
+            </div>
+          </div>
+
+          <p class="research-note reveal">
+            Mobbin signal: borrow the dominant preview and nearby prompt from
+            <a href="https://mobbin.com/flows/4797a665-3bb2-44ef-9a5f-70f026bae4b2" target="_blank" rel="noreferrer">Runway’s generation flow</a>,
+            and the quick mode-to-result path from
+            <a href="https://mobbin.com/flows/ee4f1f52-fcba-4007-a073-c3f3b2b573d4" target="_blank" rel="noreferrer">Krea’s video flow</a>.
+            Borrow FLORA’s contact-sheet comparison, but not its node canvas. Avoid long onboarding, tool rails,
+            model controls, and raw agent logs.
+          </p>
+        </section>
+
+        <section id="capabilities">
+          <div class="section-head reveal">
+            <span class="section-number">04 / Capabilities</span>
+            <div>
+              <h2>What must be fixed before add-ons.</h2>
+              <p class="section-intro">
+                P0 is the actual end-to-end contract. P1 hardens that path. “Later” is explicitly kept outside the
+                build until the contract passes.
+              </p>
+            </div>
+          </div>
+
+          <div class="filter-bar reveal" role="group" aria-label="Filter capabilities">
+            <button class="filter-button active" data-filter="all">All</button>
+            <button class="filter-button" data-filter="p0">P0 · Pipeline</button>
+            <button class="filter-button" data-filter="p1">P1 · Harden</button>
+            <button class="filter-button" data-filter="later">Later</button>
+          </div>
+
+          <div class="capability-grid">
+            <article class="capability reveal" data-priority="p0">
+              <span class="priority">P0</span><h3>Foundation + contracts</h3>
+              <p>Scaffold one repo, define typed production artifacts, stage transitions, environment checks, and a seed project.</p>
+              <div class="proof-gate"><strong>Gate:</strong> a fake production moves through every state and survives reload.</div>
+            </article>
+            <article class="capability reveal" data-priority="p0">
+              <span class="priority">P0</span><h3>Media intake</h3>
+              <p>Upload audio, lyrics, cover art and optional references with progress, validation, durable asset IDs, and R2 storage.</p>
+              <div class="proof-gate"><strong>Gate:</strong> a 100MB song uploads once, resumes safely, and plays back.</div>
+            </article>
+            <article class="capability reveal" data-priority="p0">
+              <span class="priority">P0</span><h3>Music intelligence</h3>
+              <p>Use ffprobe + Meyda to map duration, BPM, beats, energy, sections, peaks, and a chosen 20–30s excerpt.</p>
+              <div class="proof-gate"><strong>Gate:</strong> the excerpt and beat markers are deterministic on rerun.</div>
+            </article>
+            <article class="capability reveal" data-priority="p0">
+              <span class="priority">P0</span><h3>Hermes production agency</h3>
+              <p>Five roles hand off structured artifacts. Hermes emits human-readable events, pauses for direction approval, and resumes.</p>
+              <div class="proof-gate"><strong>Gate:</strong> the run visibly delegates and cannot skip the approval boundary.</div>
+            </article>
+            <article class="capability reveal" data-priority="p0">
+              <span class="priority">P0</span><h3>Creative direction</h3>
+              <p>Generate three meaningfully different treatments: narrative, visual rules, palette, shot intent, and forbidden moves.</p>
+              <div class="proof-gate"><strong>Gate:</strong> a user can explain the difference without reading the prompts.</div>
+            </article>
+            <article class="capability reveal" data-priority="p0">
+              <span class="priority">P0</span><h3>Video production adapter</h3>
+              <p>Wrap ElevenLabs Image &amp; Video behind one narrow shot API. Lock one proven model path; retries preserve shot intent.</p>
+              <div class="proof-gate"><strong>Gate:</strong> three usable shots return with IDs, cost, duration, and lineage.</div>
+            </article>
+            <article class="capability reveal" data-priority="p0">
+              <span class="priority">P0</span><h3>Hydra visual layer</h3>
+              <p>Extract Uplauz’s runtime/catalog, choose one preset from the treatment, drive it from the music map, and capture deterministically.</p>
+              <div class="proof-gate"><strong>Gate:</strong> the same feature timeline produces the same overlay frames.</div>
+            </article>
+            <article class="capability reveal" data-priority="p0">
+              <span class="priority">P0</span><h3>Composition + render</h3>
+              <p>Remotion composes shots, transitions, Hydra overlay and source audio. FFmpeg inspects and produces the delivery master.</p>
+              <div class="proof-gate"><strong>Gate:</strong> one command creates the correct 16:9 H.264/AAC master.</div>
+            </article>
+            <article class="capability reveal" data-priority="p0">
+              <span class="priority">P0</span><h3>Review + one revision</h3>
+              <p>Play the master, capture natural-language feedback, map it to affected shots/layers, and preserve version 1.</p>
+              <div class="proof-gate"><strong>Gate:</strong> version 2 changes the requested seam without rebuilding unrelated work.</div>
+            </article>
+            <article class="capability reveal" data-priority="p1">
+              <span class="priority">P1</span><h3>QA + recovery</h3>
+              <p>Validate missing frames, corrupt assets, duration, codec, loudness, FPS, strobe/luminance, and retry ceilings.</p>
+              <div class="proof-gate"><strong>Gate:</strong> an injected failed shot recovers or ends with a useful action.</div>
+            </article>
+            <article class="capability reveal" data-priority="p1">
+              <span class="priority">P1</span><h3>Cost + run observability</h3>
+              <p>Track model cost, attempts, stage latency, artifact lineage, and render logs without exposing an enterprise dashboard.</p>
+              <div class="proof-gate"><strong>Gate:</strong> every final frame can be traced to a shot, prompt, model, and run.</div>
+            </article>
+            <article class="capability reveal" data-priority="later">
+              <span class="priority">Later</span><h3>Add-on surface</h3>
+              <p>Vertical/square derivatives, full songs, 3D worlds, live-reactive companion, collaboration, artist memory, billing, and templates.</p>
+              <div class="proof-gate"><strong>Rule:</strong> none begin before the golden production passes twice from clean state.</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="architecture">
+          <div class="section-head reveal">
+            <span class="section-number">05 / Architecture</span>
+            <div>
+              <h2>Simple app. Deep production engine.</h2>
+              <p class="section-intro">
+                Copy Lawn’s implementation economy—not its framework or UX: one Bun repo, route/data colocation,
+                Convex as the realtime source of truth, and no platform scaffolding the golden path does not need.
+              </p>
+            </div>
+          </div>
+
+          <div class="architecture reveal" aria-label="AfterImage architecture diagram">
+            <div class="arch-column">
+              <div class="arch-label">Artist surface</div>
+              <div class="arch-node accent"><strong>Next.js App Router</strong><span>Brief · direction · preview · revision · export</span></div>
+              <div class="arch-node"><strong>Convex state</strong><span>Productions · artifacts · approvals · events · versions</span></div>
+              <div class="arch-node"><strong>Vercel deployment</strong><span>afterimage.space · preview deployments · route handlers · metadata</span></div>
+            </div>
+            <div class="arch-column">
+              <div class="arch-label">Agency + tools</div>
+              <div class="arch-node signal"><strong>Hermes production worker</strong><span>Plans the run, delegates roles, calls tools, persists every handoff</span></div>
+              <div class="arch-node"><strong>Music intelligence</strong><span>ffprobe · Meyda · lyric timing · section map</span></div>
+              <div class="arch-node"><strong>Shot generation</strong><span>ElevenLabs Image &amp; Video · one locked model adapter</span></div>
+              <div class="arch-node"><strong>Visual + composition</strong><span>Uplauz Hydra catalog · Remotion · FFmpeg</span></div>
+            </div>
+            <div class="arch-column">
+              <div class="arch-label">Media + compute</div>
+              <div class="arch-node"><strong>Cloudflare R2</strong><span>Sources · generated clips · overlays · masters</span></div>
+              <div class="arch-node"><strong>Local render worker</strong><span>Chromium + FFmpeg for the hackathon; replaceable later</span></div>
+              <div class="arch-node"><strong>Playback delivery</strong><span>Signed preview URL first; Stream only if preview delivery blocks UX</span></div>
+            </div>
+          </div>
+
+          <div class="stack-lock reveal">
+            <article class="stack-item"><strong>Web + host</strong><p>Bun · Next.js App Router · React 19 · TypeScript · Vercel</p></article>
+            <article class="stack-item"><strong>UI system</strong><p>Tailwind v4 tokens · next/font · Radix behavior only · Lucide</p></article>
+            <article class="stack-item"><strong>State + media</strong><p>Convex for product truth · R2 for large binaries</p></article>
+            <article class="stack-item"><strong>Production</strong><p>Hermes · ElevenLabs · Meyda · Hydra · Remotion · FFmpeg</p></article>
+          </div>
+
+          <div class="agency-proof reveal">
+            <span class="badge">Deployment boundary</span>
+            <p>
+              Vercel serves the Next.js product at <strong>afterimage.space</strong>; it does not run long FFmpeg,
+              Chromium, Hermes, or model jobs. Those stay in the production worker, report progress through Convex,
+              and publish binaries to R2. This keeps deploys fast and avoids pretending serverless functions are a
+              render queue.
+            </p>
+          </div>
+        </section>
+
+        <section id="system">
+          <div class="section-head reveal">
+            <span class="section-number">06 / Design system</span>
+            <div>
+              <h2>Projection Room.</h2>
+              <p class="section-intro">
+                A locked visual language for AfterImage: cinematic enough for artists, clear enough for a first-time
+                creator, playful without becoming toy software.
+              </p>
+            </div>
+          </div>
+
+          <div class="system-grid">
+            <article class="system-card paper reveal">
+              <span class="micro">Principles</span>
+              <h3>How every screen should feel</h3>
+              <div class="principle"><b>01</b><div><strong>Artifact first</strong><span>Video or treatment art gets the largest area. UI frames it.</span></div></div>
+              <div class="principle"><b>02</b><div><strong>One decision</strong><span>Every stage has one dominant action; secondary controls stay quiet.</span></div></div>
+              <div class="principle"><b>03</b><div><strong>Agency, translated</strong><span>Show production milestones and judgment—not terminal logs or agent topology.</span></div></div>
+              <div class="principle"><b>04</b><div><strong>Motion has meaning</strong><span>Stage transitions reveal progress; hover animation never competes with footage.</span></div></div>
+            </article>
+            <article class="system-card reveal">
+              <span class="micro">Tokens + grammar</span>
+              <h3>Dark room, warm paper, live signal</h3>
+              <p class="section-intro">
+                Bricolage Grotesque carries personality; IBM Plex Mono carries status and timecode. The palette is
+                near-black, warm bone, projection orange, acid confirmation, and one cool technical blue.
+              </p>
+              <div class="token-grid" aria-label="Color tokens">
+                <div class="swatch">INK<br />#11110F</div><div class="swatch">PAPER<br />#F1EEE5</div>
+                <div class="swatch">SIGNAL<br />#FF5A36</div><div class="swatch">ACID<br />#D9FF57</div>
+                <div class="swatch">BLUE<br />#79A7FF</div>
+              </div>
+              <ul class="route-list">
+                <li><code>/</code><span>Small production library + one “Make a video” action</span></li>
+                <li><code>/new</code><span>Song drop, references, one-sentence intent</span></li>
+                <li><code>/p/:id</code><span>One stage-aware workspace for direction, production, review, and delivery</span></li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="build">
+          <div class="section-head reveal">
+            <span class="section-number">07 / Build order</span>
+            <div>
+              <h2>Build the tracer bullet, then replace the weak links.</h2>
+              <p class="section-intro">
+                The first milestone crosses the whole system with typed placeholders. Every phase after that swaps in
+                real production capability without changing the user journey.
+              </p>
+            </div>
+          </div>
+
+          <div class="build-list">
+            <article class="build-step reveal"><span class="num">01</span><h3>Scaffold the production spine</h3><p>Next.js App Router, Convex, R2 adapter, typed artifacts, stage machine, seed production, environment validator, and Vercel project link. <strong>Exit:</strong> fake run reaches “delivered” on a preview deployment.</p></article>
+            <article class="build-step reveal"><span class="num">02</span><h3>Render something real</h3><p>Upload one song, analyze it, select the excerpt, and produce a fixed Remotion composition with source audio. <strong>Exit:</strong> downloaded master has correct audio and duration.</p></article>
+            <article class="build-step reveal"><span class="num">03</span><h3>Make the agency visible</h3><p>Wire Hermes roles, structured artifacts, event feed, treatment generation, approval pause, and resume. <strong>Exit:</strong> three directions arrive and only the selected one proceeds.</p></article>
+            <article class="build-step reveal"><span class="num">04</span><h3>Replace placeholder shots</h3><p>Integrate one ElevenLabs video model path, generation polling, lineage, cost, retries, and three-shot plan. <strong>Exit:</strong> the master is built from generated shots.</p></article>
+            <article class="build-step reveal"><span class="num">05</span><h3>Add the AfterImage signature</h3><p>Extract the Uplauz Hydra runtime/catalog, bind one preset to the music map, capture it, and composite it. <strong>Exit:</strong> visuals audibly respond and rerender deterministically.</p></article>
+            <article class="build-step reveal"><span class="num">06</span><h3>Close the loop + ship</h3><p>Review UI, one scoped revision, version comparison, QA gates, recovery states, export, golden-song rehearsal, and production-domain assignment. <strong>Exit:</strong> two clean runs complete at afterimage.space without manual repair.</p></article>
+          </div>
+        </section>
+
+        <section id="done">
+          <div class="section-head reveal">
+            <span class="section-number">08 / Done means</span>
+            <div>
+              <h2>A proof checklist, not a feeling.</h2>
+              <p class="section-intro">The next step is complete only when every statement below is demonstrably true.</p>
+            </div>
+          </div>
+          <div class="done-grid">
+            <div class="done-item reveal"><span class="check">✓</span><div><strong>Cold start works</strong><span>A new browser can create a production without seeded database edits or local file surgery.</span></div></div>
+            <div class="done-item reveal"><span class="check">✓</span><div><strong>State survives</strong><span>Refresh, reconnect, and worker restart return to the correct stage without duplicate generations.</span></div></div>
+            <div class="done-item reveal"><span class="check">✓</span><div><strong>Agency is legible</strong><span>The demo shows specialist handoffs, one approval pause, one rejection/retry, and one final decision.</span></div></div>
+            <div class="done-item reveal"><span class="check">✓</span><div><strong>Master is valid</strong><span>1920×1080, 20–30s, H.264/AAC, correct audio segment, playable in browser and downloadable.</span></div></div>
+            <div class="done-item reveal"><span class="check">✓</span><div><strong>Revision is scoped</strong><span>Version 2 preserves version 1 and changes only the requested shot, layer, or direction.</span></div></div>
+            <div class="done-item reveal"><span class="check">✓</span><div><strong>Failure is survivable</strong><span>A bad generation, timeout, or render error retries safely or offers one clear recovery action.</span></div></div>
+            <div class="done-item reveal"><span class="check">✓</span><div><strong>Creative quality holds</strong><span>The three directions are distinct and the selected master feels intentionally cut to the song.</span></div></div>
+            <div class="done-item reveal"><span class="check">✓</span><div><strong>No hidden rescue</strong><span>The demo operator never opens Remotion, FFmpeg, R2, Convex, or a model console to finish.</span></div></div>
+          </div>
+        </section>
+
+        <section id="research">
+          <div class="section-head reveal">
+            <span class="section-number">09 / Research decisions</span>
+            <div>
+              <h2>Borrow principles. Keep AfterImage’s UX original.</h2>
+              <p class="section-intro">These references informed specific choices; none is a screen to copy wholesale.</p>
+            </div>
+          </div>
+          <div class="source-grid">
+            <a class="source-card reveal" href="https://github.com/pingdotgg/lawn" target="_blank" rel="noreferrer"><span class="micro">Code simplicity</span><strong>Lawn</strong><p>Borrow its small-repo shape, route colocation, Convex usage, and “simple, fast, reliable” discipline. Next.js is an intentional Vercel-specific divergence.</p><span class="link-label">Open repository ↗</span></a>
+            <a class="source-card reveal" href="https://mobbin.com/flows/4797a665-3bb2-44ef-9a5f-70f026bae4b2" target="_blank" rel="noreferrer"><span class="micro">Mobbin · flow</span><strong>Runway</strong><p>Source/prompt beside one dominant output. Useful hierarchy; too many generation controls for AfterImage v1.</p><span class="link-label">View flow on Mobbin ↗</span></a>
+            <a class="source-card reveal" href="https://mobbin.com/flows/ee4f1f52-fcba-4007-a073-c3f3b2b573d4" target="_blank" rel="noreferrer"><span class="micro">Mobbin · flow</span><strong>Krea AI</strong><p>Fast entry from mode selection to a large preview. Borrow immediacy, not the model/tool catalog.</p><span class="link-label">View flow on Mobbin ↗</span></a>
+            <a class="source-card reveal" href="https://mobbin.com/flows/74239c1b-9ef8-4cd2-9ed2-4152da2237ca" target="_blank" rel="noreferrer"><span class="micro">Mobbin · flow</span><strong>FLORA</strong><p>Contact-sheet variations make creative choice easy. Keep that; skip the visible node graph and expert canvas.</p><span class="link-label">View flow on Mobbin ↗</span></a>
+          </div>
+        </section>
+
+        <section>
+          <div class="final-call reveal">
+            <div>
+              <span class="micro">Immediate next move</span>
+              <h2>Start with the production spine.</h2>
+            </div>
+            <p>
+              Scaffold the repo, contracts, state machine, three routes, and a fake end-to-end run. Once that spine
+              is visible in the Projection Room UI, replace placeholders in build-order sequence.
+            </p>
+          </div>
+        </section>
+
+        <footer>
+          <span>AfterImage · AI as Agency · next-step target</span>
+          <span>One pipeline first. Add-ons only after two clean golden runs.</span>
+        </footer>
+      </div>
+    </main>
+
+    <script>
+      const stages = [
+        { kicker: "Stage 01 artifact", title: "Production brief", copy: "Upload the song, optional lyrics and cover art, then write one sentence about the intended feeling. AfterImage asks only questions that materially change production." },
+        { kicker: "Stage 02 artifact", title: "Music map", copy: "The Music Analyst identifies structure, energy, lyrics, emotional turns, beat markers, and the strongest 20–30 second excerpt. The user can change the excerpt once." },
+        { kicker: "Stage 03 artifact", title: "Three treatments", copy: "The Creative Director proposes three genuinely different worlds with a title, story, visual rules, palette, shot idea, and forbidden moves. The artist picks one—no prompt editing required." },
+        { kicker: "Stage 04 artifacts", title: "Shots + motion layer", copy: "The Video Producer generates three clips while the Motion Editor selects a music-reactive Hydra layer. Failed continuity or technical QA triggers an automatic targeted retry." },
+        { kicker: "Stage 05 artifact", title: "Master version", copy: "Remotion assembles the chosen shots, transitions, Hydra overlay, and source audio. The artist watches one master and can request one conversational revision." },
+        { kicker: "Stage 06 artifact", title: "Delivery master", copy: "QA validates duration, codec, audio, missing frames, continuity, and safety. AfterImage publishes one 1920×1080 H.264/AAC MP4 with complete lineage." }
+      ];
+
+      const stageButtons = [...document.querySelectorAll(".stage-button")];
+      stageButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const stage = stages[Number(button.dataset.stage)];
+          stageButtons.forEach((item) => {
+            item.classList.remove("active");
+            item.setAttribute("aria-selected", "false");
+          });
+          button.classList.add("active");
+          button.setAttribute("aria-selected", "true");
+          document.querySelector("#stage-kicker").textContent = stage.kicker;
+          document.querySelector("#stage-title").textContent = stage.title;
+          document.querySelector("#stage-copy").textContent = stage.copy;
+        });
+      });
+
+      const filterButtons = [...document.querySelectorAll(".filter-button")];
+      const capabilities = [...document.querySelectorAll(".capability")];
+      filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const filter = button.dataset.filter;
+          filterButtons.forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          capabilities.forEach((card) => {
+            card.classList.toggle("hidden", filter !== "all" && card.dataset.priority !== filter);
+          });
+        });
+      });
+
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.08 });
+      document.querySelectorAll(".reveal").forEach((item) => revealObserver.observe(item));
+
+      const links = [...document.querySelectorAll(".section-index a")];
+      const sections = links.map((link) => document.querySelector(link.getAttribute("href"))).filter(Boolean);
+      const navObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            links.forEach((link) => link.classList.toggle("active", link.getAttribute("href") === `#${entry.target.id}`));
+          }
+        });
+      }, { rootMargin: "-20% 0px -70% 0px" });
+      sections.forEach((section) => navObserver.observe(section));
+    </script>
+  </body>
+</html>
