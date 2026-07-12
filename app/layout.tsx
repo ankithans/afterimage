@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Mono } from "next/font/google";
+import { ConvexClientProvider } from "./ConvexClientProvider";
 import "./globals.css";
 
 const display = Bricolage_Grotesque({
@@ -36,7 +37,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${display.variable} ${mono.variable}`}>{children}</body>
+      <body className={`${display.variable} ${mono.variable}`}>
+        <ConvexClientProvider>{children}</ConvexClientProvider>
+      </body>
     </html>
   );
 }

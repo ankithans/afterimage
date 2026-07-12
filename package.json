@@ -6,15 +6,20 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test backend",
+    "worker:build": "bun build backend/worker/main.ts --target=node --outfile=dist/worker.js"
   },
   "dependencies": {
+    "convex": "^1.42.1",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bun": "^1.3.14",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
