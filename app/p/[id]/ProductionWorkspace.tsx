@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "convex/react";
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, MouseEvent, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -37,6 +38,72 @@ function formatTime(createdAt: number) {
 function formatDuration(seconds: number) {
   if (!Number.isFinite(seconds)) return "0:00";
   return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, "0")}`;
+}
+
+function inlineMarkdown(text: string) {
+  return text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g).filter(Boolean).map((part, index) => {
+    if (part.startsWith("`") && part.endsWith("`")) return <code key={index}>{part.slice(1, -1)}</code>;
+    if (part.startsWith("**") && part.endsWith("**")) return <strong key={index}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith("*") && part.endsWith("*")) return <em key={index}>{part.slice(1, -1)}</em>;
+    return part;
+  });
+}
+
+function markdownBlocks(text: string) {
+  const lines = text.replaceAll("\r", "").split("\n");
+  const blocks: ReactNode[] = [];
+  let index = 0;
+  while (index < lines.length) {
+    const line = lines[index].trim();
+    if (!line) { index += 1; continue; }
+    const heading = line.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      blocks.push(<h4 key={index}>{inlineMarkdown(heading[2])}</h4>);
+      index += 1;
+      continue;
+    }
+    if (/^[-*]\s+/.test(line)) {
+      const items: ReactNode[] = [];
+      while (index < lines.length && /^[-*]\s+/.test(lines[index].trim())) {
+        items.push(<li key={index}>{inlineMarkdown(lines[index].trim().replace(/^[-*]\s+/, ""))}</li>);
+        index += 1;
+      }
+      blocks.push(<ul key={`ul-${index}`}>{items}</ul>);
+      continue;
+    }
+    if (/^\d+\.\s+/.test(line)) {
+      const items: ReactNode[] = [];
+      while (index < lines.length && /^\d+\.\s+/.test(lines[index].trim())) {
+        items.push(<li key={index}>{inlineMarkdown(lines[index].trim().replace(/^\d+\.\s+/, ""))}</li>);
+        index += 1;
+      }
+      blocks.push(<ol key={`ol-${index}`}>{items}</ol>);
+      continue;
+    }
+    const paragraph = [line];
+    index += 1;
+    while (index < lines.length && lines[index].trim() && !/^(#{1,3})\s+|^[-*]\s+|^\d+\.\s+/.test(lines[index].trim())) {
+      paragraph.push(lines[index].trim());
+      index += 1;
+    }
+    blocks.push(<p key={`p-${index}`}>{inlineMarkdown(paragraph.join(" "))}</p>);
+  }
+  return blocks;
+}
+
+function MessageBody({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = text.length > 520 || text.split("\n").length > 8;
+  return (
+    <div className={styles.messageContent}>
+      <div className={styles.messageBody} data-collapsed={isLong && !expanded}>{markdownBlocks(text)}</div>
+      {isLong && (
+        <button className={styles.readMore} onClick={() => setExpanded((value) => !value)} type="button">
+          {expanded ? "Show less ↑" : "Read more ↓"}
+        </button>
+      )}
+    </div>
+  );
 }
 
 function AudioWorkbench({ title, url }: { title: string; url: string }) {
@@ -125,7 +192,6 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
   const [deciding, setDeciding] = useState<string | null>(null);
   const [revisionStatus, setRevisionStatus] = useState("");
   const [selectedTaskKey, setSelectedTaskKey] = useState<string | null>(null);
-  const [panelMode, setPanelMode] = useState<"transcript" | "conversation">("transcript");
   const [contextPanel, setContextPanel] = useState<"lyrics" | "decisions" | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
@@ -135,8 +201,10 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
     [data],
   );
   const selectedTask = data?.tasks.find((task) => task.key === (selectedTaskKey ?? data.production.activeTaskKey)) ?? activeTask;
-  const selectedTranscript = data?.transcriptChunks.filter((chunk) => chunk.taskKey === selectedTask?.key) ?? [];
-  const selectedMessages = data?.messages.filter((message) => !selectedTask?.key || message.taskKey === selectedTask.key) ?? [];
+  const selectedMessages = (data?.messages.filter((message) => !selectedTask?.key || message.taskKey === selectedTask.key) ?? [])
+    .filter((message, index, messages) =>
+      message.author === "artist" || messages.findIndex((candidate) => candidate.author === message.author && candidate.text === message.text) === index,
+    );
   const pendingApproval = data?.approvals.find((approval) => approval.status === "pending");
   const approvedDecisions = data?.approvals.filter((approval) => approval.status === "approved").map((approval) => ({
     kind: approval.kind,
@@ -379,7 +447,7 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
                 data-selected={task.key === selectedTask?.key}
                 data-status={task.status}
                 key={task._id}
-                onClick={() => { setSelectedTaskKey(task.key); setPanelMode("transcript"); }}
+                onClick={() => setSelectedTaskKey(task.key)}
                 type="button"
               >
                 <div className={styles.taskState} aria-hidden="true" />
@@ -398,44 +466,19 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
           <div className={styles.chatHeader}>
             <div><span>{selectedTask?.role ?? "Hermes"}</span><i data-live={selectedTask?.status === "working"} /></div>
             <small>{selectedTask ? `${selectedTask.title} · ${selectedTask.skill}` : "Production record"}</small>
-            <nav className={styles.threadTabs} aria-label="Thread view">
-              <button aria-pressed={panelMode === "transcript"} onClick={() => setPanelMode("transcript")} type="button">Transcript</button>
-              <button aria-pressed={panelMode === "conversation"} onClick={() => setPanelMode("conversation")} type="button">Conversation</button>
-            </nav>
-            {selectedTask?.status === "working" && <p><b>LIVE</b> Streaming directly from the active Hermes run.</p>}
+            {selectedTask?.status === "working" && <p><b>LIVE</b> Hermes updates and your direction appear here.</p>}
           </div>
           <div className={styles.messages}>
-            {panelMode === "transcript" ? (
-              <>
-                {selectedTranscript.length === 0 && <div className={styles.emptyMessage}>No streamed transcript for this stage yet. New Hermes runs will appear here live.</div>}
-                <article className={styles.liveTranscript} data-live={selectedTask?.status === "working"}>
-                  <header><span>Hermes output</span><time>{selectedTranscript.length ? formatTime(selectedTranscript[selectedTranscript.length - 1].createdAt) : "—"}</time></header>
-                  {selectedTranscript.map((chunk) => chunk.kind === "status"
-                    ? <small key={chunk._id}>{chunk.text}</small>
-                    : <span key={chunk._id}>{chunk.text}</span>)}
-                  {selectedTask?.status === "working" && <i className={styles.cursor} />}
-                </article>
-                {selectedTask?.summary && (
-                  <details className={styles.technicalDetails}>
-                    <summary>Final artifact and technical details</summary>
-                    <pre>{selectedTask.summary}</pre>
-                  </details>
-                )}
-              </>
-            ) : (
-              <>
-                {selectedMessages.length === 0 && <div className={styles.emptyMessage}>No conversation attached to this stage.</div>}
-                {selectedMessages.map((message) => (
-                  <article className={styles.message} data-author={message.author} key={message._id}>
-                    <div>
-                      <strong>{message.author === "artist" ? "You" : message.author === "system" ? "AfterImage" : "Hermes"}</strong>
-                      <span>{formatTime(message.createdAt)} · {message.status}</span>
-                    </div>
-                    <p>{message.text}</p>
-                  </article>
-                ))}
-              </>
-            )}
+            {selectedMessages.length === 0 && <div className={styles.emptyMessage}>No conversation attached to this stage yet.</div>}
+            {selectedMessages.map((message) => (
+              <article className={styles.message} data-author={message.author} key={message._id}>
+                <div>
+                  <strong>{message.author === "artist" ? "You" : message.author === "system" ? "AfterImage" : "Hermes"}</strong>
+                  <span>{formatTime(message.createdAt)} · {message.status}</span>
+                </div>
+                <MessageBody text={message.text} />
+              </article>
+            ))}
           </div>
           <form className={styles.composer} onSubmit={submit}>
             <div className={styles.composerContext}>
