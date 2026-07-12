@@ -8,7 +8,8 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { readConfig } from "./config";
 import { buildHermesPrompt, runHermesTask, selectTaskNudges } from "./hermes";
-import { generateHeroImage, inspectMaster, renderMaster } from "./media";
+import { inspectMaster, renderVideoMaster } from "./media";
+import { generateStoryVideo } from "./seedance";
 import { transcribeSong } from "./transcription";
 
 const config = readConfig();
@@ -150,13 +151,44 @@ async function workOnce() {
   }, 15_000);
 
   try {
+    const transcriptRunId = `${claim.task.key}-${Date.now()}`;
+    let transcriptSequence = 0;
+    let transcriptBuffer = "";
+    const publishTranscript = async (force = false) => {
+      if (!transcriptBuffer || (!force && transcriptBuffer.length < 180)) return;
+      const text = transcriptBuffer;
+      transcriptBuffer = "";
+      await convex.mutation(api.worker.appendTranscriptChunk, {
+        productionId: claim.production._id,
+        taskKey: claim.task.key,
+        runId: transcriptRunId,
+        sequence: transcriptSequence++,
+        kind: "output",
+        text,
+        secret: config.workerSecret,
+      });
+    };
+    await convex.mutation(api.worker.appendTranscriptChunk, {
+      productionId: claim.production._id,
+      taskKey: claim.task.key,
+      runId: transcriptRunId,
+      sequence: transcriptSequence++,
+      kind: "status",
+      text: `${claim.task.role} opened ${claim.task.skill}.`,
+      secret: config.workerSecret,
+    });
     const summary = config.dryRun
       ? `[Dry run] ${claim.task.role} completed ${claim.task.title}.`
       : await runHermesTask({
           baseUrl: config.hermesBaseUrl,
           apiKey: config.hermesApiKey,
           prompt,
+          onChunk: async (chunk) => {
+            transcriptBuffer += chunk;
+            await publishTranscript();
+          },
         });
+    await publishTranscript(true);
 
     let artifactKind: string | undefined;
     let artifactPayload: Record<string, unknown> | undefined;
@@ -182,29 +214,45 @@ async function workOnce() {
       await convex.mutation(api.worker.postTaskUpdate, {
         productionId: claim.production._id,
         taskKey: claim.task.key,
-        text: "The production prompt is locked. OpenAI is generating the approved hero frame now.",
+        text: "The story prompt is locked. Seedance 2.0 is directing the cinematic video now.",
         secret: config.workerSecret,
       });
-      const image = await generateHeroImage({ apiKey: config.openAiApiKey, prompt: summary });
+      const referenceImages = claim.assets
+        .filter((asset) => (asset.kind === "artwork" || asset.kind === "reference") && asset.url)
+        .map((asset) => asset.url!)
+        .slice(0, 9);
+      const storyVideo = await generateStoryVideo({
+        apiKey: config.seedanceApiKey,
+        prompt: `${summary}\n\nApproved context:\n${priorContext}`,
+        imageUrls: referenceImages,
+        onProgress: async (status) => {
+          await convex.mutation(api.worker.postTaskUpdate, {
+            productionId: claim.production._id,
+            taskKey: claim.task.key,
+            text: `Seedance generation is ${status}. The story render remains attached to this production lease.`,
+            secret: config.workerSecret,
+          });
+        },
+      });
       const assetId = await uploadAsset({
         productionId: claim.production._id,
-        bytes: image,
-        kind: "generated_image",
-        filename: "hero-frame.png",
-        contentType: "image/png",
+        bytes: storyVideo,
+        kind: "generated_clip",
+        filename: `story-v${(claim.production.revisionCount ?? 0) + 1}.mp4`,
+        contentType: "video/mp4",
       });
       artifactKind = "shot_plan";
-      artifactPayload = { prompt: summary, imageAssetId: assetId };
+      artifactPayload = { prompt: summary, videoAssetId: assetId, provider: "seedance-2-0" };
     } else if (claim.task.key === "compose-master") {
-      const imageAsset = [...claim.assets].reverse().find((asset) => asset.kind === "generated_image" && asset.url);
-      if (!imageAsset?.url || !claim.sourceAudioUrl) throw new Error("Master inputs are incomplete");
+      const videoAsset = [...claim.assets].reverse().find((asset) => asset.kind === "generated_clip" && asset.url);
+      if (!videoAsset?.url || !claim.sourceAudioUrl) throw new Error("Master inputs are incomplete");
       await convex.mutation(api.worker.postTaskUpdate, {
         productionId: claim.production._id,
         taskKey: claim.task.key,
         text: "Picture and source audio are ready. FFmpeg is assembling the review master.",
         secret: config.workerSecret,
       });
-      const master = await renderMaster({ imageUrl: imageAsset.url, audioUrl: claim.sourceAudioUrl });
+      const master = await renderVideoMaster({ videoUrl: videoAsset.url, audioUrl: claim.sourceAudioUrl });
       masterAssetId = await uploadAsset({
         productionId: claim.production._id,
         bytes: master,

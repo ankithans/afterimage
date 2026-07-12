@@ -82,6 +82,18 @@ export default defineSchema({
     appliedAt: v.optional(v.number()),
   }).index("by_production", ["productionId", "createdAt"]),
 
+  transcriptChunks: defineTable({
+    productionId: v.id("productions"),
+    taskKey: v.string(),
+    runId: v.string(),
+    sequence: v.number(),
+    kind: v.union(v.literal("output"), v.literal("status"), v.literal("error")),
+    text: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_production", ["productionId", "createdAt"])
+    .index("by_production_task", ["productionId", "taskKey", "createdAt"]),
+
   events: defineTable({
     productionId: v.id("productions"),
     taskKey: v.optional(v.string()),

@@ -49,6 +49,31 @@ export async function renderMaster(input: { imageUrl: string; audioUrl: string }
   }
 }
 
+export async function renderVideoMaster(input: { videoUrl: string; audioUrl: string }) {
+  const workdir = await mkdtemp(join(tmpdir(), "afterimage-video-master-"));
+  try {
+    const [videoResponse, audioResponse] = await Promise.all([fetch(input.videoUrl), fetch(input.audioUrl)]);
+    if (!videoResponse.ok || !audioResponse.ok) throw new Error("Could not download video master inputs");
+    const videoPath = join(workdir, "story.mp4");
+    const audioPath = join(workdir, "source.audio");
+    const outputPath = join(workdir, "master.mp4");
+    await Promise.all([
+      writeFile(videoPath, Buffer.from(await videoResponse.arrayBuffer())),
+      writeFile(audioPath, Buffer.from(await audioResponse.arrayBuffer())),
+    ]);
+    await execFileAsync("ffmpeg", [
+      "-hide_banner", "-loglevel", "error", "-i", videoPath, "-i", audioPath,
+      "-map", "0:v:0", "-map", "1:a:0", "-shortest",
+      "-vf", "scale=854:480:force_original_aspect_ratio=decrease,pad=854:480:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
+      "-c:v", "libx264", "-preset", "veryfast", "-crf", "21", "-threads", "1",
+      "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", outputPath,
+    ]);
+    return await readFile(outputPath);
+  } finally {
+    await rm(workdir, { recursive: true, force: true });
+  }
+}
+
 export async function inspectMaster(masterUrl: string) {
   const workdir = await mkdtemp(join(tmpdir(), "afterimage-qa-"));
   try {

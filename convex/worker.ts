@@ -126,6 +126,31 @@ export const postTaskUpdate = mutation({
   },
 });
 
+export const appendTranscriptChunk = mutation({
+  args: {
+    productionId: v.id("productions"),
+    taskKey: v.string(),
+    runId: v.string(),
+    sequence: v.number(),
+    kind: v.union(v.literal("output"), v.literal("status"), v.literal("error")),
+    text: v.string(),
+    secret: v.string(),
+  },
+  handler: async (ctx, args) => {
+    assertWorkerSecret(args.secret);
+    if (!args.text) return;
+    await ctx.db.insert("transcriptChunks", {
+      productionId: args.productionId,
+      taskKey: args.taskKey,
+      runId: args.runId,
+      sequence: args.sequence,
+      kind: args.kind,
+      text: args.text,
+      createdAt: Date.now(),
+    });
+  },
+});
+
 export const completeTask = mutation({
   args: {
     productionId: v.id("productions"),

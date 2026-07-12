@@ -53,9 +53,10 @@ export const get = query({
     const production = await ctx.db.get(args.productionId);
     if (!production) return null;
 
-    const [tasks, messages, events, artifacts, approvals, versions, assets] = await Promise.all([
+    const [tasks, messages, transcriptChunks, events, artifacts, approvals, versions, assets] = await Promise.all([
       ctx.db.query("tasks").withIndex("by_production", (q) => q.eq("productionId", args.productionId)).collect(),
       ctx.db.query("messages").withIndex("by_production", (q) => q.eq("productionId", args.productionId)).collect(),
+      ctx.db.query("transcriptChunks").withIndex("by_production", (q) => q.eq("productionId", args.productionId)).collect(),
       ctx.db.query("events").withIndex("by_production", (q) => q.eq("productionId", args.productionId)).collect(),
       ctx.db.query("artifacts").withIndex("by_production", (q) => q.eq("productionId", args.productionId)).collect(),
       ctx.db.query("approvals").withIndex("by_production", (q) => q.eq("productionId", args.productionId)).collect(),
@@ -79,13 +80,24 @@ export const get = query({
         return { ...option, previewUrl: asset?.url ?? undefined };
       }),
     }));
-    return { production, tasks, messages, events, sourceAudio, sourceAudioUrl, artifacts, approvals: approvalsWithPreview, versions, assets: assetsWithUrls };
+    return { production, tasks, messages, transcriptChunks, events, sourceAudio, sourceAudioUrl, artifacts, approvals: approvalsWithPreview, versions, assets: assetsWithUrls };
   },
 });
 
 export const list = query({
   args: {},
   handler: async (ctx) => ctx.db.query("productions").order("desc").take(20),
+});
+
+export const rename = mutation({
+  args: { productionId: v.id("productions"), title: v.string() },
+  handler: async (ctx, args) => {
+    const production = await ctx.db.get(args.productionId);
+    if (!production) throw new Error("Production not found");
+    const title = args.title.trim();
+    if (!title) throw new Error("Production name cannot be empty");
+    await ctx.db.patch(args.productionId, { title, updatedAt: Date.now() });
+  },
 });
 
 export const cancel = mutation({

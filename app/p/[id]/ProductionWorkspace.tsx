@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
+import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, MouseEvent, useEffect, useMemo, useRef, useState } from "react";
 
@@ -117,16 +118,25 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
   const sendNudge = useMutation(api.chat.sendNudge);
   const selectApproval = useMutation(api.approvals.select);
   const requestRevision = useMutation(api.revisions.request);
+  const renameProduction = useMutation(api.productions.rename);
   const [text, setText] = useState("");
   const [revision, setRevision] = useState("");
   const [sending, setSending] = useState(false);
   const [deciding, setDeciding] = useState<string | null>(null);
   const [revisionStatus, setRevisionStatus] = useState("");
+  const [selectedTaskKey, setSelectedTaskKey] = useState<string | null>(null);
+  const [panelMode, setPanelMode] = useState<"transcript" | "conversation">("transcript");
+  const [contextPanel, setContextPanel] = useState<"lyrics" | "decisions" | null>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
 
   const activeTask = useMemo(
     () => data?.tasks.find((task) => task.key === data.production.activeTaskKey),
     [data],
   );
+  const selectedTask = data?.tasks.find((task) => task.key === (selectedTaskKey ?? data.production.activeTaskKey)) ?? activeTask;
+  const selectedTranscript = data?.transcriptChunks.filter((chunk) => chunk.taskKey === selectedTask?.key) ?? [];
+  const selectedMessages = data?.messages.filter((message) => !selectedTask?.key || message.taskKey === selectedTask.key) ?? [];
   const pendingApproval = data?.approvals.find((approval) => approval.status === "pending");
   const approvedDecisions = data?.approvals.filter((approval) => approval.status === "approved").map((approval) => ({
     kind: approval.kind,
@@ -134,6 +144,17 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
   })) ?? [];
   const master = [...(data?.assets ?? [])].reverse().find((asset) => asset.kind === "master" && asset.url);
   const canChat = Boolean(activeTask) && !["completed", "cancelled", "failed"].includes(data?.production.status ?? "");
+
+  async function saveName() {
+    const title = nameDraft.trim();
+    if (!title || title === data?.production.title) {
+      setNameDraft(data?.production.title ?? "");
+      setEditingName(false);
+      return;
+    }
+    await renameProduction({ productionId: id, title });
+    setEditingName(false);
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -179,8 +200,31 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
   return (
     <main className={styles.page}>
       <header className={styles.topbar}>
-        <Link href="/" className={styles.brand}>afterimage<span>.</span></Link>
-        <div className={styles.productionName}>{data.production.title}</div>
+        <Link href="/" className={styles.brand} aria-label="AfterImage home">
+          <Image alt="" height={24} priority src="/brand/logo-transparent.png" width={24} />
+          <span>afterimage<b>.</b></span>
+        </Link>
+        {editingName ? (
+          <div className={styles.nameEditor}>
+            <input
+              aria-label="Production name"
+              autoFocus
+              maxLength={80}
+              onChange={(event) => setNameDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") void saveName();
+                if (event.key === "Escape") { setNameDraft(data.production.title); setEditingName(false); }
+              }}
+              value={nameDraft}
+            />
+            <button aria-label="Save production name" onClick={() => void saveName()} type="button">✓</button>
+            <button aria-label="Cancel rename" onClick={() => { setNameDraft(data.production.title); setEditingName(false); }} type="button">×</button>
+          </div>
+        ) : (
+          <button className={styles.productionName} onClick={() => { setNameDraft(data.production.title); setEditingName(true); }} title="Rename production" type="button">
+            {data.production.title}<span>✎</span>
+          </button>
+        )}
         <div className={styles.state}>{data.production.status.replaceAll("_", " ")}</div>
       </header>
 
@@ -188,17 +232,32 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
         <section className={styles.screeningRoom}>
           {data.sourceAudioUrl && <AudioWorkbench title={data.sourceAudio?.filename ?? data.production.title} url={data.sourceAudioUrl} />}
 
-          <section className={styles.productionMemory}>
-            <article className={styles.transcriptCard}>
-              <div><span>Speech transcript</span><b>{data.production.lyrics ? "captured" : "listening"}</b></div>
-              <p>{data.production.lyrics || "OpenAI speech-to-text is listening for the lyric spine…"}</p>
-            </article>
-            <article className={styles.decisionLedger}>
-              <div><span>Artist decisions</span><b>{approvedDecisions.length} locked</b></div>
-              {approvedDecisions.length ? approvedDecisions.map(({ kind, option }) => (
-                <p key={kind}><small>{kind}</small><strong>{option?.label ?? "Selection recorded"}</strong></p>
-              )) : <em>Your excerpt, world, and master decisions will collect here.</em>}
-            </article>
+          <section className={styles.contextDock}>
+            <div className={styles.contextControls}>
+              <span>Production context</span>
+              <button aria-pressed={contextPanel === "lyrics"} onClick={() => setContextPanel(contextPanel === "lyrics" ? null : "lyrics")} type="button">
+                Lyrics <b>{data.production.lyrics ? "captured" : "listening"}</b>
+              </button>
+              <button aria-pressed={contextPanel === "decisions"} onClick={() => setContextPanel(contextPanel === "decisions" ? null : "decisions")} type="button">
+                Decisions <b>{approvedDecisions.length} locked</b>
+              </button>
+            </div>
+            {contextPanel === "lyrics" && (
+              <article className={styles.contextDrawer}>
+                <header><span>Song transcript</span><button onClick={() => setContextPanel(null)} type="button">Close ×</button></header>
+                <p>{data.production.lyrics || "OpenAI speech-to-text is listening for the lyric spine…"}</p>
+              </article>
+            )}
+            {contextPanel === "decisions" && (
+              <article className={styles.contextDrawer}>
+                <header><span>Locked artist decisions</span><button onClick={() => setContextPanel(null)} type="button">Close ×</button></header>
+                <div className={styles.contextDecisions}>
+                  {approvedDecisions.length ? approvedDecisions.map(({ kind, option }) => (
+                    <p key={kind}><small>{kind}</small><strong>{option?.label ?? "Selection recorded"}</strong></p>
+                  )) : <em>Your excerpt, world, and master decisions will collect here.</em>}
+                </div>
+              </article>
+            )}
           </section>
 
           <div className={styles.screen} data-mode={master ? "master" : pendingApproval ? "decision" : "live"}>
@@ -282,38 +341,68 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
           <div className={styles.taskStack}>
             <div className={styles.sectionLabel}>Hermes production plan</div>
             {data.tasks.map((task) => (
-              <article className={styles.task} data-status={task.status} key={task._id}>
+              <button
+                className={styles.task}
+                data-selected={task.key === selectedTask?.key}
+                data-status={task.status}
+                key={task._id}
+                onClick={() => { setSelectedTaskKey(task.key); setPanelMode("transcript"); }}
+                type="button"
+              >
                 <div className={styles.taskState} aria-hidden="true" />
                 <div>
                   <strong>{task.title}</strong>
                   <p>{task.role} · <span>{task.skill}</span></p>
-                  {task.summary && <small>{task.summary}</small>}
+                  {task.summary && <small>{task.summary.split(/\n|Summary:/)[0].slice(0, 120)}</small>}
                 </div>
-                <code>{task.status.replaceAll("_", " ")}</code>
-              </article>
+                <code>{task.status.replaceAll("_", " ")} · view →</code>
+              </button>
             ))}
           </div>
         </section>
 
         <aside className={styles.chat}>
           <div className={styles.chatHeader}>
-            <div><span>Hermes live thread</span><i data-live={data.production.status === "working"} /></div>
-            <small>{activeTask ? `${activeTask.role} · ${activeTask.skill}` : "Production record"}</small>
-            {data.production.status === "working" && <p><b>LIVE</b> Hermes is inside this skill now. Checkpoints appear here as they land.</p>}
+            <div><span>{selectedTask?.role ?? "Hermes"}</span><i data-live={selectedTask?.status === "working"} /></div>
+            <small>{selectedTask ? `${selectedTask.title} · ${selectedTask.skill}` : "Production record"}</small>
+            <nav className={styles.threadTabs} aria-label="Thread view">
+              <button aria-pressed={panelMode === "transcript"} onClick={() => setPanelMode("transcript")} type="button">Transcript</button>
+              <button aria-pressed={panelMode === "conversation"} onClick={() => setPanelMode("conversation")} type="button">Conversation</button>
+            </nav>
+            {selectedTask?.status === "working" && <p><b>LIVE</b> Streaming directly from the active Hermes run.</p>}
           </div>
           <div className={styles.messages}>
-            {data.messages.length === 0 && (
-              <div className={styles.emptyMessage}>Hermes’s progress and your direction will appear here.</div>
+            {panelMode === "transcript" ? (
+              <>
+                {selectedTranscript.length === 0 && <div className={styles.emptyMessage}>No streamed transcript for this stage yet. New Hermes runs will appear here live.</div>}
+                <article className={styles.liveTranscript} data-live={selectedTask?.status === "working"}>
+                  <header><span>Hermes output</span><time>{selectedTranscript.length ? formatTime(selectedTranscript[selectedTranscript.length - 1].createdAt) : "—"}</time></header>
+                  {selectedTranscript.map((chunk) => chunk.kind === "status"
+                    ? <small key={chunk._id}>{chunk.text}</small>
+                    : <span key={chunk._id}>{chunk.text}</span>)}
+                  {selectedTask?.status === "working" && <i className={styles.cursor} />}
+                </article>
+                {selectedTask?.summary && (
+                  <details className={styles.technicalDetails}>
+                    <summary>Final artifact and technical details</summary>
+                    <pre>{selectedTask.summary}</pre>
+                  </details>
+                )}
+              </>
+            ) : (
+              <>
+                {selectedMessages.length === 0 && <div className={styles.emptyMessage}>No conversation attached to this stage.</div>}
+                {selectedMessages.map((message) => (
+                  <article className={styles.message} data-author={message.author} key={message._id}>
+                    <div>
+                      <strong>{message.author === "artist" ? "You" : message.author === "system" ? "AfterImage" : "Hermes"}</strong>
+                      <span>{formatTime(message.createdAt)} · {message.status}</span>
+                    </div>
+                    <p>{message.text}</p>
+                  </article>
+                ))}
+              </>
             )}
-            {data.messages.map((message) => (
-              <article className={styles.message} data-author={message.author} key={message._id}>
-                <div>
-                  <strong>{message.author === "artist" ? "You" : message.author === "system" ? "AfterImage" : "Hermes"}</strong>
-                  <span>{formatTime(message.createdAt)} · {message.status}</span>
-                </div>
-                <p>{message.text}</p>
-              </article>
-            ))}
           </div>
           <form className={styles.composer} onSubmit={submit}>
             <div className={styles.composerContext}>

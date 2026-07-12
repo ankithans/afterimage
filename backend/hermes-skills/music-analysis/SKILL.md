@@ -1,10 +1,14 @@
 ---
 name: music-analysis
-description: Analyze an AfterImage song source and produce a concise music-map artifact for creative direction.
+description: Listen to an AfterImage song and create a time-aware visual-performance map that can immediately drive probes, loops, and live visual changes.
 ---
 
 # Music Analysis
 
-Use the supplied transcript and production intent. Never invent BPM, timecodes, sections, or audible qualities that were not measured or provided.
+Use measured audio features, transcript, and production intent. Never invent BPM, timecodes, sections, or audible qualities.
 
-Deliver a high-level artist-readable summary covering emotional arc, lyrical motifs, energy movement, and the rationale for the recommended 20–30 second excerpt. Do not start creative direction.
+Map the song for visual performance, not literary commentary. Identify the emotional contradiction, lyrical image, verified energy changes, moments for withholding/accumulation/rupture/release, and audio features suitable for visual control.
+
+As soon as a motif is defensible, emit a `visual_seed` checkpoint with a noun, material, visual verb, palette pressure, and forbidden cliché. This lets the execution layer begin low/medium image probes while analysis continues.
+
+Finish with a compact `music_map`. Do not write polished directions or claim unmeasured timing.
