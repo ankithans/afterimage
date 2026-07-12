@@ -8,7 +8,7 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { readConfig } from "./config";
 import { buildHermesPrompt, runHermesTask, selectTaskNudges } from "./hermes";
-import { inspectMaster, renderVideoMaster } from "./media";
+import { generateHeroImage, inspectMaster, renderVideoMaster } from "./media";
 import { generateStoryVideo } from "./seedance";
 import { transcribeSong } from "./transcription";
 
@@ -205,14 +205,32 @@ async function workOnce() {
         excerpts: [],
       };
     } else if (claim.task.key === "develop-directions") {
+      const directions = parseCreativeDirections(summary);
+      await convex.mutation(api.worker.postTaskUpdate, {
+        productionId: claim.production._id,
+        taskKey: claim.task.key,
+        text: `Hermes defined ${directions.length} song-specific worlds. Their visual probes are generating in parallel.`,
+        secret: config.workerSecret,
+      });
+      const directionsWithMedia = await Promise.all(directions.map(async (direction) => {
+        const image = await generateHeroImage({ apiKey: config.openAiApiKey, prompt: direction.imagePrompt });
+        const assetId = await uploadAsset({
+          productionId: claim.production._id,
+          bytes: image,
+          kind: "generated_image",
+          filename: `${direction.id}.png`,
+          contentType: "image/png",
+        });
+        await convex.mutation(api.worker.postTaskUpdate, {
+          productionId: claim.production._id,
+          taskKey: claim.task.key,
+          text: `Visual probe ready: ${direction.title}.`,
+          secret: config.workerSecret,
+        });
+        return { ...direction, previewUrl: `asset:${assetId}` };
+      }));
       artifactKind = "treatment_set";
-      artifactPayload = {
-        directions: [
-          { id: "treatment-narrative", title: "Narrative Memory", description: `Character-led and emotionally legible. ${summary.slice(0, 350)}` },
-          { id: "treatment-portrait", title: "Performance Portrait", description: "A restrained performer study with controlled light, lens intimacy, and visual continuity." },
-          { id: "treatment-abstract", title: "Sensory Afterimage", description: "An abstract world of texture, color, delayed reflections, and music-reactive visual bloom." },
-        ],
-      };
+      artifactPayload = { directions: directionsWithMedia };
     } else if (claim.task.key === "produce-shots") {
       await convex.mutation(api.worker.postTaskUpdate, {
         productionId: claim.production._id,
@@ -293,6 +311,25 @@ async function workOnce() {
     clearInterval(heartbeat);
     activeProductionId = null;
   }
+}
+
+function parseCreativeDirections(text: string) {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start < 0 || end <= start) throw new Error("Creative Director returned no structured directions");
+  const parsed = JSON.parse(text.slice(start, end + 1)) as { directions?: unknown[] };
+  if (!Array.isArray(parsed.directions) || parsed.directions.length !== 3) {
+    throw new Error("Creative Director must return exactly three structured directions");
+  }
+  return parsed.directions.map((value, index) => {
+    const direction = value && typeof value === "object" ? value as Record<string, unknown> : {};
+    const id = String(direction.id ?? `direction-${index + 1}`).trim();
+    const title = String(direction.title ?? "").trim();
+    const description = String(direction.description ?? "").trim();
+    const imagePrompt = String(direction.imagePrompt ?? "").trim();
+    if (!title || !description || !imagePrompt) throw new Error(`Creative direction ${index + 1} is incomplete`);
+    return { id, title, description, imagePrompt };
+  });
 }
 
 async function uploadAsset(input: {

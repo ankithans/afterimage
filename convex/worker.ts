@@ -269,6 +269,7 @@ export const completeTask = mutation({
               id: String(value.id ?? `${approvalKind}-${index + 1}`),
               label: String(value.title ?? value.label ?? `${approvalKind} ${index + 1}`),
               description: String(value.description ?? value.story ?? value.rationale ?? ""),
+              previewUrl: typeof value.previewUrl === "string" ? value.previewUrl : undefined,
             };
           })
         : approvalKind === "master" && args.masterAssetId

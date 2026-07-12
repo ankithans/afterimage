@@ -76,3 +76,38 @@ export const skipInvalidExcerpt = mutation({
     return true;
   },
 });
+
+export const regenerateStaticTreatment = mutation({
+  args: { productionId: v.id("productions") },
+  handler: async (ctx, args) => {
+    const production = await ctx.db.get(args.productionId);
+    if (!production || production.status !== "awaiting_input") return false;
+    const approvals = await ctx.db.query("approvals").withIndex("by_production", (q) => q.eq("productionId", args.productionId)).collect();
+    const legacyLabels = new Set(["Narrative Memory", "Performance Portrait", "Sensory Afterimage"]);
+    const invalid = approvals.find((approval) =>
+      approval.kind === "treatment" && approval.status === "pending" && approval.options.every((option) => legacyLabels.has(option.label)),
+    );
+    if (!invalid) return false;
+    const tasks = await ctx.db.query("tasks").withIndex("by_production", (q) => q.eq("productionId", args.productionId)).collect();
+    const creative = tasks.find((task) => task.key === "develop-directions");
+    if (!creative) throw new ConvexError("Creative Direction task is missing");
+    const now = Date.now();
+    await ctx.db.patch(invalid._id, { status: "superseded", decidedAt: now });
+    await ctx.db.patch(creative._id, { status: "ready", summary: undefined, completedAt: undefined });
+    await ctx.db.patch(args.productionId, {
+      status: "queued",
+      activeTaskKey: creative.key,
+      updatedAt: now,
+      leaseOwner: undefined,
+      leaseExpiresAt: undefined,
+    });
+    await ctx.db.insert("events", {
+      productionId: args.productionId,
+      taskKey: creative.key,
+      type: "approval.treatment.regenerated",
+      summary: "AfterImage discarded legacy static treatments and queued media-backed directions.",
+      createdAt: now,
+    });
+    return true;
+  },
+});

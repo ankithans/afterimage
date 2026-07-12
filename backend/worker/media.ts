@@ -11,7 +11,7 @@ export async function generateHeroImage(input: { apiKey: string; prompt: string 
     method: "POST",
     headers: { authorization: `Bearer ${input.apiKey}`, "content-type": "application/json" },
     body: JSON.stringify({
-      model: "gpt-image-1.5",
+      model: process.env.IMAGE_OPENAI_MODEL || "gpt-image-2",
       prompt: `${input.prompt}\nCinematic music-video frame, 16:9 composition, no text, no logo, no watermark.`,
       size: "1536x1024",
       quality: "medium",

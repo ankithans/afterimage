@@ -18,3 +18,9 @@ For each world:
 5. Inspect media. Replace a failed role with targeted direction rather than rewriting the whole world.
 
 The artist chooses from visible media. Preserve selected probe IDs and prompts as lineage. For “generate more,” change one major variable while preserving identity. Never return a prose-only treatment.
+
+For the current execution contract, end with exactly one JSON object and no markdown fence:
+
+{"directions":[{"id":"short-kebab-id","title":"song-specific title","description":"one concise emotional and visual thesis","imagePrompt":"a narrow production prompt for one 16:9 visual probe"}]}
+
+Return exactly three directions. Titles, descriptions, and image prompts must be derived from this song and must not use generic narrative/performance/abstract category names.
