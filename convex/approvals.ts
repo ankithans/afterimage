@@ -35,3 +35,44 @@ export const select = mutation({
     });
   },
 });
+
+export const skipInvalidExcerpt = mutation({
+  args: { productionId: v.id("productions") },
+  handler: async (ctx, args) => {
+    const production = await ctx.db.get(args.productionId);
+    if (!production || production.status !== "awaiting_input") return false;
+    const approvals = await ctx.db
+      .query("approvals")
+      .withIndex("by_production", (q) => q.eq("productionId", args.productionId))
+      .collect();
+    const invalid = approvals.find(
+      (approval) => approval.kind === "excerpt" && approval.status === "pending" && approval.options.length < 2,
+    );
+    if (!invalid) return false;
+    const tasks = await ctx.db
+      .query("tasks")
+      .withIndex("by_production", (q) => q.eq("productionId", args.productionId))
+      .collect();
+    const current = tasks.find((task) => task.key === invalid.taskKey);
+    const next = current ? tasks.find((task) => task.order === current.order + 1) : null;
+    if (!next) throw new ConvexError("Invalid excerpt approval has no downstream task");
+    const now = Date.now();
+    await ctx.db.patch(invalid._id, { status: "superseded", decidedAt: now });
+    await ctx.db.patch(next._id, { status: "ready" });
+    await ctx.db.patch(args.productionId, {
+      status: "queued",
+      activeTaskKey: next.key,
+      updatedAt: now,
+      leaseOwner: undefined,
+      leaseExpiresAt: undefined,
+    });
+    await ctx.db.insert("events", {
+      productionId: args.productionId,
+      taskKey: invalid.taskKey,
+      type: "approval.excerpt.skipped",
+      summary: "AfterImage skipped an invalid excerpt decision because it contained no real alternatives.",
+      createdAt: now,
+    });
+    return true;
+  },
+});

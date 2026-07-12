@@ -245,7 +245,9 @@ export const completeTask = mutation({
     }
 
     const approvalKind =
-      task.key === "analyze-music"
+      task.key === "analyze-music" &&
+      Array.isArray((args.artifactPayload as Record<string, unknown> | undefined)?.excerpts) &&
+      ((args.artifactPayload as Record<string, unknown>).excerpts as unknown[]).length >= 2
         ? "excerpt"
         : task.key === "develop-directions"
           ? "treatment"

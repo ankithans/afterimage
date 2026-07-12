@@ -199,7 +199,10 @@ async function workOnce() {
       artifactPayload = {
         summary,
         lyrics: lyrics ?? claim.production.lyrics ?? "",
-        excerpts: [{ id: "excerpt-primary", title: "Recommended 20–30 second arc", description: summary.slice(0, 700) }],
+        // A single untimed recommendation is not an artist decision. Timed
+        // analysis may populate multiple candidates later; until then the
+        // workflow advances without showing a false choice.
+        excerpts: [],
       };
     } else if (claim.task.key === "develop-directions") {
       artifactKind = "treatment_set";

@@ -27,7 +27,7 @@ export type ProductionNudge = {
 };
 
 const taskDefinitions = [
-  ["analyze-music", "Map the song and choose its strongest excerpt", "Music Analyst", "music-analysis"],
+  ["analyze-music", "Map the song’s visual and emotional arc", "Music Analyst", "music-analysis"],
   ["develop-directions", "Develop three distinct creative directions", "Creative Director", "creative-direction"],
   ["produce-shots", "Produce the approved direction", "Video Producer", "video-production"],
   ["compose-master", "Compose motion, picture, and sound", "Motion Editor", "motion-composition"],

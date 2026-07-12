@@ -7,7 +7,7 @@ describe("production plan", () => {
     expect(createProductionPlan("production-1")).toEqual([
       {
         key: "analyze-music",
-        title: "Map the song and choose its strongest excerpt",
+        title: "Map the song’s visual and emotional arc",
         role: "Music Analyst",
         skill: "music-analysis",
         status: "ready",
