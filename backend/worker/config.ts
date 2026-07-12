@@ -6,6 +6,7 @@ export type WorkerConfig = {
   hermesBaseUrl: string;
   hermesApiKey: string;
   openAiApiKey: string;
+  linkupApiKey: string;
   seedanceApiKey: string;
   pollIntervalMs: number;
   dryRun: boolean;
@@ -26,6 +27,7 @@ export function readConfig(): WorkerConfig {
     hermesBaseUrl: process.env.HERMES_BASE_URL?.trim() || "http://127.0.0.1:8642",
     hermesApiKey: required("API_SERVER_KEY"),
     openAiApiKey: required("OPENAI_API_KEY"),
+    linkupApiKey: required("LINKUP_API_KEY"),
     seedanceApiKey: required("SEEDANCE_API_KEY"),
     pollIntervalMs: Number(process.env.POLL_INTERVAL_MS || 5000),
     dryRun: process.env.WORKER_DRY_RUN === "true",

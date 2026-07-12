@@ -8,6 +8,7 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { readConfig } from "./config";
 import { buildHermesPrompt, runHermesTask, selectTaskNudges } from "./hermes";
+import { buildResearchQuery, formatResearchForHermes, formatResearchUpdate, searchWithLinkup, shouldResearchTask } from "./linkup";
 import { generateHeroImage, inspectMaster, renderVideoMaster } from "./media";
 import { generateStoryVideo } from "./seedance";
 import { transcribeSong } from "./transcription";
@@ -123,7 +124,7 @@ async function workOnce() {
     if (!master?.url) throw new Error("QA cannot run without a delivery master");
     qualityEvidence = await inspectMaster(master.url);
   }
-  const prompt = `${basePrompt}\n\nApproved production context:\n${priorContext}${qualityEvidence ? `\n\nDeterministic delivery-master inspection (already verified with ffprobe):\n${JSON.stringify(qualityEvidence)}` : ""}`;
+  let prompt = `${basePrompt}\n\nApproved production context:\n${priorContext}${qualityEvidence ? `\n\nDeterministic delivery-master inspection (already verified with ffprobe):\n${JSON.stringify(qualityEvidence)}` : ""}`;
 
   await convex.mutation(api.worker.postTaskUpdate, {
     productionId: claim.production._id,
@@ -131,6 +132,34 @@ async function workOnce() {
     text: `${claim.task.role} started “${claim.task.title}” using ${claim.task.skill}.`,
     secret: config.workerSecret,
   });
+
+  if (!config.dryRun && shouldResearchTask(claim.task.key)) {
+    try {
+      const research = await searchWithLinkup({
+        apiKey: config.linkupApiKey,
+        query: buildResearchQuery({
+          title: claim.production.title,
+          intent: claim.production.intent,
+          taskKey: claim.task.key,
+        }),
+      });
+      prompt += `\n\n${formatResearchForHermes(research)}`;
+      await convex.mutation(api.worker.postTaskUpdate, {
+        productionId: claim.production._id,
+        taskKey: claim.task.key,
+        text: formatResearchUpdate(research),
+        secret: config.workerSecret,
+      });
+    } catch (error) {
+      console.warn("Linkup research unavailable; continuing without it", error);
+      await convex.mutation(api.worker.postTaskUpdate, {
+        productionId: claim.production._id,
+        taskKey: claim.task.key,
+        text: "Linkup live research is temporarily unavailable. Hermes is continuing with the approved production context.",
+        secret: config.workerSecret,
+      });
+    }
+  }
 
   let heartbeatTicks = 0;
   const heartbeat = setInterval(() => {
