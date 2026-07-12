@@ -324,16 +324,10 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
               </div>
             ) : (
               <div className={styles.liveMonitor}>
-                <div className={styles.monitorGlow} aria-hidden="true" />
                 <header>
-                  <div>
-                    <small>Stage {String(Math.max(1, activeTaskIndex + 1)).padStart(2, "0")} / {String(data.tasks.length).padStart(2, "0")}</small>
-                    <b>{activeTask?.skill ?? "production"}</b>
-                  </div>
-                  <div className={styles.renderTelemetry}>
-                    <span><i /> Agent online</span>
-                    <span>{data.production.videoDurationSeconds ?? 5}s · 480p</span>
-                  </div>
+                  <span>Stage {String(Math.max(1, activeTaskIndex + 1)).padStart(2, "0")} of {String(data.tasks.length).padStart(2, "0")}</span>
+                  <span>{activeTask?.skill ?? "production"}</span>
+                  <span><i /> live</span>
                 </header>
 
                 <div className={styles.monitorBody}>
@@ -341,28 +335,19 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
                     <p>{data.production.status === "completed" ? "The agency has finished" : "Hermes is working as"}</p>
                     <h1>{activeTask?.role ?? "AfterImage Producer"}</h1>
                     <strong>{activeTask?.title ?? "Production complete"}</strong>
-                    <div className={styles.stageMeter}>
-                      <i style={{ width: `${Math.max(8, (completedTaskCount / data.tasks.length) * 100)}%` }} />
-                    </div>
-                    <small>{completedTaskCount} stages locked · {data.tasks.length - completedTaskCount} remaining</small>
                   </section>
 
-                  <aside className={styles.monitorFeed}>
-                    <header><span>Now on the desk</span><b>LIVE</b></header>
-                    {selectedTreatment && <div className={styles.feedDecision}><small>Approved world</small><strong>{selectedTreatment}</strong></div>}
-                    {activeTranscriptPreview ? (
-                      <blockquote>{activeTranscriptPreview.slice(-360)}<i /></blockquote>
-                    ) : activeMessages.length ? (
-                      activeMessages.map((message) => <p key={message._id}>{message.text}</p>)
-                    ) : (
-                      <p>Hermes has opened the skill and is preparing the first production checkpoint.</p>
-                    )}
-                  </aside>
+                  <div className={styles.currentCheckpoint}>
+                    <div><span>Current checkpoint</span><b>{data.production.videoDurationSeconds ?? 5}s · 480p</b></div>
+                    {selectedTreatment && <small>Following: {selectedTreatment}</small>}
+                    <p>{activeTranscriptPreview.slice(-240) || activeMessages.at(-1)?.text || "Hermes has opened the skill and is preparing the first checkpoint."}<i /></p>
+                  </div>
                 </div>
 
                 <footer>
+                  <div><span>{completedTaskCount} complete</span><span>{data.tasks.length - completedTaskCount} remaining</span></div>
                   {data.tasks.map((task, index) => (
-                    <span data-state={task.status} key={task.key}><b>{String(index + 1).padStart(2, "0")}</b>{task.role}</span>
+                    <i data-state={task.status} key={task.key}><b>{String(index + 1).padStart(2, "0")}</b><span>{task.role}</span></i>
                   ))}
                 </footer>
               </div>
