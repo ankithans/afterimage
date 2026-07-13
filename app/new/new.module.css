@@ -43,5 +43,23 @@
 .submitRow span { color: var(--paper-muted); font: 400 10px var(--mono); }
 .submitRow button { min-height: 48px; padding: 0 22px; border: 0; color: var(--ink); background: var(--signal); font: 600 10px var(--mono); text-transform: uppercase; cursor: pointer; }
 .submitRow button:disabled { opacity: .35; cursor: not-allowed; }
-@media (max-width: 850px) { .layout { grid-template-columns: 1fr; } .intro { min-height: 56svh; border-right: 0; border-bottom: 1px solid var(--line); } }
-@media (max-width: 560px) { .topbar { grid-template-columns: 1fr 1fr; padding: 0 16px; } .topbar > span:nth-child(2) { display: none; } .intro, .form { padding: 28px 18px; } .dropzone { min-height: 280px; } .referenceFields { grid-template-columns: 1fr; } .submitRow { align-items: stretch; flex-direction: column; } }
+@media (max-width: 850px) { .layout { grid-template-columns: 1fr; } .intro { min-height: 42svh; border-right: 0; border-bottom: 1px solid var(--line); } .form { justify-content: flex-start; } }
+@media (max-width: 560px) {
+  .topbar { position: sticky; z-index: 10; top: 0; grid-template-columns: 1fr 1fr; min-height: 56px; padding: 0 16px; background: rgba(17,17,15,.94); backdrop-filter: blur(14px); }
+  .topbar > span:nth-child(2) { display: none; }
+  .intro { min-height: 34svh; padding: 42px 18px 30px; }
+  .form { gap: 20px; padding: 30px 18px calc(40px + env(safe-area-inset-bottom)); }
+  .kicker { margin-bottom: 20px; }
+  .intro h1 { font-size: clamp(52px,17vw,76px); }
+  .intro p { margin-top: 22px; font-size: 15px; line-height: 1.45; }
+  .titleField input, .intentField textarea { font-size: 16px; }
+  .durationField > div { gap: 5px; }
+  .durationField label { min-height: 64px; padding: 9px; flex-direction: column; align-items: flex-start; }
+  .dropzone { min-height: 210px; padding: 24px 18px; }
+  .plus { width: 50px; height: 50px; margin-bottom: 16px; }
+  .dropzone strong { font-size: 18px; }
+  .referenceFields { grid-template-columns: 1fr; }
+  .referenceFields label { min-height: 58px; }
+  .submitRow { align-items: stretch; flex-direction: column; }
+  .submitRow button { min-height: 52px; }
+}

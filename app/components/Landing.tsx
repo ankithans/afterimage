@@ -1,7 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { useQuery } from "convex/react";
 import { useEffect, useRef, useState } from "react";
+
+import { api } from "@/convex/_generated/api";
 
 const TICKER_ITEMS = [
   "One song in",
@@ -65,36 +68,6 @@ const STAGES = [
   },
 ];
 
-const TREATMENTS = [
-  {
-    id: "glasshouse",
-    art: "art-glasshouse",
-    video: "/videos/glasshouse.mp4",
-    tag: "Treatment 01",
-    title: "Glasshouse Memory",
-    copy: "Warm decay and delayed reflections. Figures that vanish one beat after the chorus lands.",
-    quip: "Good eye. The crew hoped you'd pick that one.",
-  },
-  {
-    id: "litany",
-    art: "art-litany",
-    video: "/videos/litany.mp4",
-    tag: "Treatment 02",
-    title: "Neon Litany",
-    copy: "A slow prayer in signal colors. Every light in the frame answers the vocal.",
-    quip: "Bold. The director is thrilled.",
-  },
-  {
-    id: "static",
-    art: "art-static",
-    video: "/videos/static.mp4",
-    tag: "Treatment 03",
-    title: "Salt & Static",
-    copy: "Pale mornings and broken transmissions. The quiet kind of loud.",
-    quip: "The quiet one. It'll hit harder that way.",
-  },
-];
-
 function useReveal() {
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -121,6 +94,8 @@ export default function Landing() {
   const rootRef = useReveal();
   const [scrolled, setScrolled] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
+  const [showcaseOffset, setShowcaseOffset] = useState(0);
+  const showcase = useQuery(api.productions.showcase);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -129,7 +104,20 @@ export default function Landing() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const pickedTreatment = TREATMENTS.find((t) => t.id === picked);
+  const showcaseItems = showcase ?? [];
+  const visibleShowcase = showcaseItems.length <= 3
+    ? showcaseItems
+    : Array.from({ length: 3 }, (_, index) => showcaseItems[(showcaseOffset + index) % showcaseItems.length]);
+  const pickedTreatment = showcaseItems.find((item) => item.id === picked);
+
+  useEffect(() => {
+    if (showcaseItems.length <= 3) return;
+    const timer = window.setInterval(() => {
+      setPicked(null);
+      setShowcaseOffset((offset) => (offset + 1) % showcaseItems.length);
+    }, 8_000);
+    return () => window.clearInterval(timer);
+  }, [showcaseItems.length]);
 
   return (
     <div ref={rootRef}>
@@ -149,9 +137,12 @@ export default function Landing() {
             <span>afterimage</span>
           </a>
           <span className="masthead-note">a film crew for musicians</span>
-          <a className="button small" href="#early-access">
-            Early access
-          </a>
+          <nav className="masthead-actions" aria-label="Primary navigation">
+            <a className="productions-link" href="/productions"><i />All productions <b>→</b></a>
+            <a className="button small" href="/new" target="_blank" rel="noopener noreferrer">
+              New production ↗
+            </a>
+          </nav>
         </div>
       </header>
 
@@ -175,8 +166,8 @@ export default function Landing() {
                 delivers your video.
               </p>
               <div className="hero-actions">
-                <a className="button primary" href="#early-access">
-                  Send us a song →
+                <a className="button primary" href="/new" target="_blank" rel="noopener noreferrer">
+                  Start a production ↗
                 </a>
                 <a className="button" href="#how">
                   How it works
@@ -288,7 +279,7 @@ export default function Landing() {
             </div>
 
             <div className="cards">
-              {TREATMENTS.map((t, i) => (
+              {visibleShowcase.map((t, i) => (
                 <div className={`card-slot reveal d${i + 1}`} key={t.id}>
                   <button
                     type="button"
@@ -297,15 +288,14 @@ export default function Landing() {
                     aria-pressed={picked === t.id}
                   >
                     <span className="card-art" aria-hidden>
-                      <i className={t.art} />
                       <video
-                        src={t.video}
+                        src={t.url}
                         autoPlay
                         muted
                         loop
                         playsInline
                       />
-                      <span className="card-tag">{t.tag}</span>
+                      <span className="card-tag">Production {String(i + 1).padStart(2, "0")}</span>
                       <span className="card-check">✓</span>
                     </span>
                     <span className="card-body">
@@ -321,10 +311,12 @@ export default function Landing() {
               {pickedTreatment ? (
                 <>
                   <b>{pickedTreatment.title.toLowerCase()}</b> it is.{" "}
-                  {pickedTreatment.quip}
+                  Open the production library to see how it was made.
                 </>
+              ) : showcase === undefined ? (
+                <>loading recent productions…</>
               ) : (
-                <>hover to look closer · click to choose</>
+                <>real AfterImage productions · rotating every eight seconds</>
               )}
             </p>
           </div>

@@ -91,7 +91,55 @@ export const get = query({
 
 export const list = query({
   args: {},
-  handler: async (ctx) => ctx.db.query("productions").order("desc").take(20),
+  handler: async (ctx) => {
+    const productions = await ctx.db.query("productions").order("desc").take(20);
+    return Promise.all(productions.map(async (production) => {
+      const assets = await ctx.db
+        .query("assets")
+        .withIndex("by_production", (q) => q.eq("productionId", production._id))
+        .collect();
+      const priorities = ["master", "generated_clip", "generated_image", "artwork", "reference"];
+      const covers = (await Promise.all(priorities.flatMap((kind) =>
+        [...assets]
+          .reverse()
+          .filter((asset) => asset.kind === kind)
+          .map(async (asset) => ({ kind: asset.kind, url: await ctx.storage.getUrl(asset.storageId) })),
+      ))).filter((cover): cover is { kind: typeof assets[number]["kind"]; url: string } => Boolean(cover.url));
+      return {
+        ...production,
+        cover: covers[0] ?? null,
+        covers,
+      };
+    }));
+  },
+});
+
+export const showcase = query({
+  args: {},
+  handler: async (ctx) => {
+    const productions = await ctx.db.query("productions").order("desc").take(30);
+    const items = await Promise.all(productions.map(async (production) => {
+      const assets = await ctx.db
+        .query("assets")
+        .withIndex("by_production", (q) => q.eq("productionId", production._id))
+        .collect();
+      const video = [...assets].reverse().find((asset) => asset.kind === "master")
+        ?? [...assets].reverse().find((asset) => asset.kind === "generated_clip");
+      if (!video) return null;
+      const url = await ctx.storage.getUrl(video.storageId);
+      if (!url) return null;
+      return {
+        id: video._id,
+        productionId: production._id,
+        title: production.title,
+        copy: production.intent || "An original visual world generated from the song, its lyrics, and the artist’s direction.",
+        kind: video.kind,
+        url,
+        createdAt: video.createdAt,
+      };
+    }));
+    return items.filter((item) => item !== null).slice(0, 18);
+  },
 });
 
 export const rename = mutation({

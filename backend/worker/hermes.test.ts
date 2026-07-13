@@ -27,6 +27,18 @@ test("provider errors returned as Hermes messages fail the task", () => {
   ).toThrow("Hermes agent failed");
 });
 
+test("video production is planning-only and hands off directly to Seedance", () => {
+  const prompt = buildHermesPrompt({
+    productionTitle: "Summer Memory",
+    task: { key: "produce-shots", title: "Produce the approved direction", role: "Video Producer", skill: "video-production" },
+    nudges: ["use seedance"],
+  });
+
+  expect(prompt).toContain("Do not call image, video, FAL");
+  expect(prompt).toContain("worker submits it directly to Seedance");
+  expect(prompt).toContain("use seedance");
+});
+
 test("only nudges for the active task are consumed", () => {
   expect(
     selectTaskNudges("develop-directions", [

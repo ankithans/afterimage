@@ -21,6 +21,10 @@ export function buildHermesPrompt(input: {
     ? input.nudges.map((nudge) => `- ${nudge}`).join("\n")
     : "- No additional direction. Follow the approved production context.";
 
+  const executionBoundary = input.task.key === "produce-shots"
+    ? `\n\nCRITICAL EXECUTION CONTRACT:\n- Do not call image, video, FAL, terminal, browser, or code tools.\n- Do not render or inspect media.\n- Return one Seedance-ready story prompt immediately; the AfterImage worker submits it directly to Seedance after your response.\n- Keep the prompt under 4,000 characters.`
+    : "";
+
   return `You are the ${input.task.role} working on AfterImage production "${input.productionTitle}".
 
 Use the ${input.task.skill} skill to complete this high-level task:
@@ -31,7 +35,7 @@ ${artistDirection}
 
 Work autonomously within this task. Do not start downstream tasks. Preserve decisions already recorded by the production. At meaningful checkpoints, communicate a short high-level progress update that an artist can understand; do not expose terminal logs or private chain-of-thought.
 
-Return a concise final summary and the structured artifact you produced.`;
+Return a concise final summary and the structured artifact you produced.${executionBoundary}`;
 }
 
 export async function runHermesTask(input: {

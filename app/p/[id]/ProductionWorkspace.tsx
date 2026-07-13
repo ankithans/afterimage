@@ -195,6 +195,9 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
   const [contextPanel, setContextPanel] = useState<"lyrics" | "decisions" | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
+  const productionVideoRef = useRef<HTMLVideoElement>(null);
+  const [selectedMasterAssetId, setSelectedMasterAssetId] = useState<string | null>(null);
+  const [selectedStillAssetId, setSelectedStillAssetId] = useState<string | null>(null);
 
   const activeTask = useMemo(
     () => data?.tasks.find((task) => task.key === data.production.activeTaskKey),
@@ -210,8 +213,34 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
     kind: approval.kind,
     option: approval.options.find((option) => option.id === approval.selectionId),
   })) ?? [];
-  const master = [...(data?.assets ?? [])].reverse().find((asset) => asset.kind === "master" && asset.url);
+  const masterAssets = (data?.assets ?? []).filter((asset) => asset.kind === "master" && asset.url);
+  const versionNumberByAsset = new Map((data?.versions ?? []).map((version) => [version.masterAssetId, version.number]));
+  const masterVersions = masterAssets.map((asset, index) => {
+    const filenameVersion = asset.filename.match(/v(\d+)/i)?.[1];
+    return {
+      asset,
+      number: versionNumberByAsset.get(asset._id) ?? (filenameVersion ? Number(filenameVersion) : index + 1),
+    };
+  }).sort((left, right) => left.number - right.number);
+  const selectedMaster = selectedMasterAssetId
+    ? masterVersions.find((version) => version.asset._id === selectedMasterAssetId)
+    : undefined;
+  const currentMasterVersion = selectedMaster ?? masterVersions.at(-1);
+  const master = currentMasterVersion?.asset;
+  const storyVideo = [...(data?.assets ?? [])].reverse().find((asset) => asset.kind === "generated_clip" && asset.url);
+  const productionVideo = master ?? storyVideo;
+  const stillAssets = (data?.assets ?? []).filter((asset) => ["generated_image", "artwork", "reference"].includes(asset.kind) && asset.url);
+  const selectedStill = stillAssets.find((asset) => asset._id === selectedStillAssetId);
   const canChat = Boolean(activeTask) && !["completed", "cancelled", "failed"].includes(data?.production.status ?? "");
+
+  useEffect(() => {
+    const video = productionVideoRef.current;
+    if (!video || !productionVideo?.url) return;
+    video.muted = true;
+    void video.play().catch(() => {
+      // Native controls remain available if a user-level browser policy blocks autoplay.
+    });
+  }, [productionVideo?.url]);
 
   async function saveName() {
     const title = nameDraft.trim();
@@ -303,7 +332,10 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
             {data.production.title}<span>✎</span>
           </button>
         )}
-        <div className={styles.state}>{data.production.status.replaceAll("_", " ")} · {data.production.videoDurationSeconds ?? 5}s</div>
+        <div className={styles.topbarActions}>
+          <Link className={styles.libraryLink} href="/productions">All productions</Link>
+          <div className={styles.state}>{data.production.status.replaceAll("_", " ")} · {data.production.videoDurationSeconds ?? 5}s</div>
+        </div>
       </header>
 
       <div className={styles.layout}>
@@ -338,13 +370,63 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
             )}
           </section>
 
-          <div className={styles.screen} data-mode={master ? "master" : pendingApproval ? "decision" : "live"}>
-            <span className={styles.screenLabel}>{master ? "CURRENT MASTER" : pendingApproval ? "ARTIST DECISION" : "LIVE PRODUCTION"}</span>
+          <div className={styles.screen} data-mode={productionVideo ? "master" : pendingApproval ? "decision" : "live"}>
+            <span className={styles.screenLabel}>{master ? "CURRENT MASTER" : storyVideo ? "STORY VIDEO" : pendingApproval ? "ARTIST DECISION" : "LIVE PRODUCTION"}</span>
             {!pendingApproval && data.production.status !== "completed" && <div className={styles.signal} />}
 
-            {master?.url ? (
+            {productionVideo?.url ? (
               <div className={styles.masterStage}>
-                <video className={styles.masterVideo} controls playsInline preload="metadata" src={master.url} />
+                {masterVersions.length > 1 && (
+                  <nav aria-label="Master versions" className={styles.versionRail}>
+                    <span>Cut</span>
+                    {masterVersions.map((version) => (
+                      <button
+                        aria-current={version.asset._id === master?._id ? "true" : undefined}
+                        key={version.asset._id}
+                        onClick={() => setSelectedMasterAssetId(version.asset._id)}
+                        type="button"
+                      >
+                        V{version.number}
+                      </button>
+                    ))}
+                  </nav>
+                )}
+                <video
+                  autoPlay
+                  className={styles.masterVideo}
+                  controls
+                  loop
+                  muted
+                  onCanPlay={(event) => void event.currentTarget.play().catch(() => undefined)}
+                  playsInline
+                  preload="auto"
+                  ref={productionVideoRef}
+                  src={productionVideo.url}
+                />
+                {selectedStill?.url && (
+                  <div className={styles.stillInspection}>
+                    <button aria-label="Close image inspection" onClick={() => setSelectedStillAssetId(null)} type="button">Close ×</button>
+                    <i style={{ backgroundImage: `url(${selectedStill.url})` }} />
+                    <span>{selectedStill.filename}</span>
+                  </div>
+                )}
+                {stillAssets.length > 0 && (
+                  <section className={styles.stillStrip}>
+                    <header><span>Visual studies</span><b>{String(stillAssets.length).padStart(2, "0")}</b></header>
+                    <div>
+                      {stillAssets.map((asset) => (
+                        <button
+                          aria-label={`Inspect ${asset.filename}`}
+                          aria-pressed={asset._id === selectedStillAssetId}
+                          key={asset._id}
+                          onClick={() => setSelectedStillAssetId(asset._id === selectedStillAssetId ? null : asset._id)}
+                          style={{ backgroundImage: `url(${asset.url})` }}
+                          type="button"
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
                 {pendingApproval?.kind === "master" && (
                   <div className={styles.masterDecision}>
                     <div><small>Master review</small><strong>Does this feel finished?</strong></div>
@@ -451,7 +533,7 @@ export function ProductionWorkspace({ productionId }: { productionId: string }) 
                 type="button"
               >
                 <div className={styles.taskState} aria-hidden="true" />
-                <div>
+                <div className={styles.messageMeta}>
                   <strong>{task.title}</strong>
                   <p>{task.role} · <span>{task.skill}</span></p>
                   {task.summary && <small>{task.summary.split(/\n|Summary:/)[0].slice(0, 120)}</small>}
